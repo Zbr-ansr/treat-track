@@ -12,7 +12,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js');
+      navigator.serviceWorker.register('./service-worker.js');
     });
   }
 </script>
@@ -211,11 +211,12 @@
   <div class="modal-overlay" id="modalLog" onclick="closeModalOutside(event,'modalLog')">
     <div class="modal">
       <div class="modal-handle"></div>
-      <h3>Log a Snack</h3>
+      <h3 id="modalTitle">Log a Snack</h3>
       <div class="overflow-warning" id="overflowWarning"></div>
       <div class="field"><label>Category</label><select id="snackCat"></select></div>
       <div class="field"><label>Price (₹)</label><input type="number" id="snackPrice" placeholder="0" min="0" step="0.5" oninput="checkOverflow()"></div>
-      <button class="btn btn-primary" id="addBtn" onclick="logSnack()">Add</button>
+      <div class="field" id="timeField" style="display:none"><label>Date &amp; Time</label><input type="datetime-local" id="snackTime"></div>
+      <button class="btn btn-primary" id="addBtn" onclick="submitModal()">Add</button>
     </div>
   </div>
 </div>
@@ -323,12 +324,40 @@ function renderHome() {
   }).join('');
 }
 
+let editingId=null;
+function setModalMode(edit) {
+  document.getElementById('modalTitle').textContent=edit?'Edit Time':'Log a Snack';
+  document.getElementById('timeField').style.display=edit?'block':'none';
+  document.getElementById('snackCat').disabled=edit;
+  document.getElementById('snackPrice').disabled=edit;
+  document.getElementById('addBtn').textContent=edit?'Save':'Add';
+}
+function toLocalInput(d) { const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; }
+function submitModal() { if(editingId!==null) saveEdit(); else logSnack(); }
+function openEditModal(id) {
+  const s=state.snacks.find(x=>x.id===id); if(!s) return;
+  editingId=id;
+  document.getElementById('snackCat').innerHTML=`<option>${s.cat}</option>`;
+  document.getElementById('snackPrice').value=s.price;
+  document.getElementById('snackTime').value=toLocalInput(new Date(s.time));
+  document.getElementById('overflowWarning').classList.remove('show');
+  setModalMode(true);
+  document.getElementById('modalLog').classList.add('open');
+}
+function saveEdit() {
+  const s=state.snacks.find(x=>x.id===editingId); const v=document.getElementById('snackTime').value;
+  if(!s||!v) return;
+  const d=new Date(v); if(isNaN(d)) return;
+  s.time=d.toISOString(); s.hour=d.getHours(); save();
+  closeModal('modalLog'); renderHistory();
+}
 function openLogModal() {
+  editingId=null; setModalMode(false); document.getElementById('snackPrice').value='';
   document.getElementById('snackCat').innerHTML=state.cats.map(c=>`<option value="${c}">${c}</option>`).join('');
   document.getElementById('modalLog').classList.add('open');
   setTimeout(()=>document.getElementById('snackPrice').focus(),300);
 }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); if(id==='modalLog'){ editingId=null; setModalMode(false); } }
 function closeModalOutside(e,id) { if(e.target===document.getElementById(id)) closeModal(id); }
 
 function checkOverflow() {
@@ -371,7 +400,7 @@ function renderHistory() {
   document.getElementById('historyList').innerHTML=state.snacks.map(s=>{
     const d=new Date(s.time); const icon=s.cat.split(' ')[0]; const lbl=s.cat.split(' ').slice(1).join(' ');
     const ts=fmtDate(d)+' · '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-    return `<div class="history-item"><div style="display:flex;align-items:center;gap:12px;"><div class="hi-icon">${icon}</div><div><div class="hi-name">${lbl}</div><div class="hi-meta">Q${s.quarter+1} · ${ts}</div></div></div><div style="display:flex;align-items:center;"><div class="hi-price">₹${s.price.toFixed(2)}</div><button class="del-btn" onclick="deleteSnack(${s.id})">🗑️</button></div></div>`;
+    return `<div class="history-item" style="cursor:pointer" onclick="openEditModal(${s.id})"><div style="display:flex;align-items:center;gap:12px;"><div class="hi-icon">${icon}</div><div><div class="hi-name">${lbl}</div><div class="hi-meta">Q${s.quarter+1} · ${ts}</div></div></div><div style="display:flex;align-items:center;"><div class="hi-price">₹${s.price.toFixed(2)}</div><button class="del-btn" onclick="event.stopPropagation();deleteSnack(${s.id})">🗑️</button></div></div>`;
   }).join('');
 }
 
