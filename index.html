@@ -125,6 +125,13 @@
   .add-cat-row input { flex: 1; padding: 12px 13px; background: var(--card2); border: 1.5px solid var(--border); border-radius: 12px; color: var(--text); font-size: 14px; outline: none; }
   .add-cat-row input:focus { border-color: var(--c3); }
   .add-cat-btn { padding: 12px 18px; background: var(--c3); color: #000; border: none; border-radius: 12px; font-size: 20px; font-weight: 700; cursor: pointer; }
+.scope-row { display:flex; gap:8px; margin-bottom:14px; }
+  .scope-btn { flex:1; padding:9px; border-radius:10px; border:1.5px solid var(--border); background:var(--card2); color:var(--muted); font-weight:700; font-size:13px; cursor:pointer; }
+  .scope-btn.on { border-color:var(--c3); color:var(--text); }
+  .cyc-card { background: var(--card); border-radius: 14px; padding: 13px 15px; margin-bottom: 8px; }
+  .cyc-top { display:flex; justify-content:space-between; font-size:13px; font-weight:700; }
+  .cyc-sub { font-size:11px; color:var(--muted); margin-top:3px; }
+  .imp-msg { font-size:13px; color:var(--muted); line-height:1.5; margin:10px 0; white-space:pre-line; }
 </style>
 </head>
 <body>
@@ -156,7 +163,7 @@
     <div id="expiredBanner" style="display:none;" class="expired-banner">
       <h3>28-day period ended</h3>
       <p>Your budget cycle is complete. Start a new one to keep tracking.</p>
-      <button class="btn btn-primary" style="margin-top:0;" onclick="resetApp()">Start New Period</button>
+      <button class="btn btn-primary" style="margin-top:0;" onclick="startNewPeriod()">Start New Period</button>
     </div>
     <div id="circleArea">
       <div class="circle-wrap">
@@ -183,11 +190,20 @@
           <div class="settings-row" onclick="showSubpage('stats')"><span>Stats</span><span class="arr">›</span></div>
           <div class="settings-row" onclick="showSubpage('history')"><span>History</span><span class="arr">›</span></div>
           <div class="settings-row" onclick="showSubpage('categories')"><span>Edit Categories</span><span class="arr">›</span></div>
+          <div class="settings-row" onclick="showSubpage('import')"><span>Import CSV</span><span class="arr">›</span></div>
           <div class="settings-row danger" onclick="resetApp()"><span>Reset</span><span class="arr">›</span></div>
         </div>
       </div>
       <div id="subStats" class="subpage"><button class="back-btn" onclick="showSubpage(null)">‹ Settings</button><div class="page-title">Stats</div><div id="statsContent"></div></div>
       <div id="subHistory" class="subpage"><button class="back-btn" onclick="showSubpage(null)">‹ Settings</button><div class="page-title">History</div><div id="historyList"></div></div>
+      <div id="subImport" class="subpage">
+        <button class="back-btn" onclick="showSubpage(null)">‹ Settings</button>
+        <div class="page-title">Import CSV</div>
+        <div class="imp-msg">Replaces ALL app data with the cycles and purchases in the file. The cycle containing today becomes the active one; earlier cycles go to Past Cycles.</div>
+        <input type="file" id="importFile" accept=".csv,text/csv,text/plain" onchange="readImport(event)" style="color:var(--text);margin:8px 0;">
+        <div class="imp-msg" id="importSummary"></div>
+        <button class="btn btn-primary" id="importBtn" style="display:none" onclick="applyImport()">Replace data with import</button>
+      </div>
       <div id="subCategories" class="subpage">
         <button class="back-btn" onclick="showSubpage(null)">‹ Settings</button>
         <div class="page-title">Edit Categories</div>
@@ -224,11 +240,11 @@
 <script>
 const DEFAULT_CATS = ['🍟 Chips','🍫 Chocolate','🍬 Candy','🍪 Cookies','🥜 Nuts & Seeds','🍦 Ice Cream','🧁 Pastries','🍿 Popcorn','🥪 Savory Snacks','☕ Coffee','🍵 Tea','🥤 Soft Drinks','🧋 Milkshake','🧃 Juice','🍱 Other'];
 
-let state = { budget:0, qBudget:0, quarters:[{b:0,s:0},{b:0,s:0},{b:0,s:0},{b:0,s:0}], snacks:[], startDate:null, cats:[...DEFAULT_CATS] };
+let state = { budget:0, qBudget:0, quarters:[{b:0,s:0},{b:0,s:0},{b:0,s:0},{b:0,s:0}], snacks:[], startDate:null, cats:[...DEFAULT_CATS], history:[] };
 
 function save() { localStorage.setItem('treattrack_v3', JSON.stringify(state)); }
 function resetApp() { localStorage.removeItem('treattrack_v3'); location.reload(); }
-function load() { try { const d=localStorage.getItem('treattrack_v3'); if(d){ state=JSON.parse(d); if(!state.cats) state.cats=[...DEFAULT_CATS]; }} catch(e){} }
+function load() { try { const d=localStorage.getItem('treattrack_v3'); if(d){ state=JSON.parse(d); if(!state.cats) state.cats=[...DEFAULT_CATS]; if(!state.history) state.history=[]; if(state.budget>0) recalc(state); }} catch(e){} }
 
 load();
 if (state.budget > 0) { document.getElementById('setupScreen').style.display='none'; document.getElementById('mainApp').style.display='block'; showTab('home'); }
@@ -265,6 +281,19 @@ function previewBudget() {
   box.classList.add('show');
 }
 
+// Quarter balances are derived from purchases: each quarter starts at qBudget,
+// any overspend (negative balance) of the previous quarter is deducted once.
+function recalc(c) {
+  let carry=0;
+  c.quarters=[0,1,2,3].map(i=>{ const s=c.snacks.filter(x=>x.quarter===i).reduce((a,x)=>a+x.price,0); const b=c.qBudget+carry-s; carry=Math.min(0,b); return {b,s}; });
+}
+function archiveCurrent() {
+  if(state.budget>0 && state.startDate) state.history.push({startDate:state.startDate,budget:state.budget,qBudget:state.qBudget,quarters:state.quarters,snacks:state.snacks});
+}
+function startNewPeriod() {
+  archiveCurrent(); state.budget=0; state.snacks=[]; state.startDate=null; save();
+  document.getElementById('mainApp').style.display='none'; document.getElementById('setupScreen').style.display='block';
+}
 function startBudget() {
   const v=parseFloat(document.getElementById('budgetInput').value); if(!v||v<=0){alert('Enter a valid budget.');return;}
   const monday=nextMonday(); state.budget=v; state.qBudget=v/4;
@@ -282,11 +311,12 @@ function showTab(t) {
 }
 
 function showSubpage(page) {
-  ['stats','history','categories'].forEach(p=>{ document.getElementById('sub'+p.charAt(0).toUpperCase()+p.slice(1)).classList.toggle('active',p===page); });
+  ['stats','history','categories','import'].forEach(p=>{ document.getElementById('sub'+p.charAt(0).toUpperCase()+p.slice(1)).classList.toggle('active',p===page); });
   document.getElementById('settingsMain').style.display=page?'none':'block';
   if(page==='stats') renderStats();
   if(page==='history') renderHistory();
   if(page==='categories') renderCatGrid();
+  if(page==='import'){ document.getElementById('importFile').value=''; document.getElementById('importSummary').textContent=''; document.getElementById('importBtn').style.display='none'; }
 }
 
 function renderHome() {
@@ -371,13 +401,8 @@ function logSnack() {
   if(!price||price<=0){alert('Enter a valid price.');return;}
   const cq=getCurrentQ();
   // Allow negative — do NOT zero out, so balance shows negative
-  state.quarters[cq].b -= price;
-  state.quarters[cq].s += price;
-  if(state.quarters[cq].b < 0 && cq+1 < 4){
-    state.quarters[cq+1].b += state.quarters[cq].b; // deduct overflow from next
-    // keep current quarter negative so it shows on screen
-  }
   const now=new Date(); state.snacks.unshift({id:Date.now(),price,cat,quarter:cq,time:now.toISOString(),hour:now.getHours()});
+  recalc(state);
   save(); document.getElementById('snackPrice').value=''; document.getElementById('overflowWarning').classList.remove('show');
   const btn=document.getElementById('addBtn'); btn.textContent='✅'; btn.style.background='#4ade80';
   setTimeout(()=>{ btn.textContent='Add'; btn.style.background=''; closeModal('modalLog'); renderHome(); },800);
@@ -385,8 +410,7 @@ function logSnack() {
 
 function deleteSnack(id) {
   const s=state.snacks.find(x=>x.id===id); if(!s) return;
-  state.quarters[s.quarter].b+=s.price; state.quarters[s.quarter].s-=s.price;
-  state.snacks=state.snacks.filter(x=>x.id!==id); save(); renderHistory();
+  state.snacks=state.snacks.filter(x=>x.id!==id); recalc(state); save(); renderHistory();
 }
 
 function renderCatGrid() {
@@ -404,9 +428,23 @@ function renderHistory() {
   }).join('');
 }
 
+let statsScope='cycle';
+function setScope(s){ statsScope=s; renderStats(); }
+function renderPastCycles() {
+  if(!state.history.length) return '';
+  return `<div class="section-title">Past Cycles</div>`+[...state.history].reverse().map(c=>{
+    const st=new Date(c.startDate); const en=new Date(st); en.setDate(en.getDate()+27);
+    const spent=c.snacks.reduce((a,x)=>a+x.price,0); const left=c.budget-spent;
+    return `<div class="cyc-card"><div class="cyc-top"><span>${fmtDate(st)} – ${fmtDate(en)}</span><span style="color:${left<0?'#ff6b6b':'#4ade80'}">₹${left.toFixed(0)} left</span></div>
+      <div class="cyc-sub">Budget ₹${c.budget.toFixed(0)} · Spent ₹${spent.toFixed(0)} · ${c.snacks.length} purchases</div>
+      <div class="cyc-sub">${c.quarters.map((q,i)=>`Q${i+1} ₹${q.s.toFixed(0)}`).join(' · ')}</div></div>`;
+  }).join('');
+}
 function renderStats() {
-  const snacks=state.snacks;
-  if(!snacks.length){document.getElementById('statsContent').innerHTML=`<div class="empty-state"><div class="big">📊</div><p>Log some snacks first.</p></div>`;return;}
+  const all=statsScope==='all';
+  const snacks=all?state.history.flatMap(c=>c.snacks).concat(state.snacks):state.snacks;
+  const toggle=`<div class="scope-row"><button class="scope-btn ${all?'':'on'}" onclick="setScope('cycle')">This cycle</button><button class="scope-btn ${all?'on':''}" onclick="setScope('all')">All time</button></div>`;
+  if(!snacks.length){document.getElementById('statsContent').innerHTML=toggle+`<div class="empty-state"><div class="big">📊</div><p>Log some snacks first.</p></div>`+(all?renderPastCycles():'');return;}
   const total=snacks.reduce((a,s)=>a+s.price,0); const avg=total/snacks.length;
   const priceMap={}; snacks.forEach(s=>{const k=s.price.toFixed(2);priceMap[k]=(priceMap[k]||0)+1;});
   const commonP=Object.entries(priceMap).sort((a,b)=>b[1]-a[1])[0];
@@ -417,21 +455,76 @@ function renderStats() {
   const peakTime=Object.entries(tb).sort((a,b)=>b[1]-a[1])[0][0];
   const qSpend=[0,0,0,0]; snacks.forEach(s=>{qSpend[s.quarter]+=s.price;});
   const maxCat=sortedCats[0][1];
-  document.getElementById('statsContent').innerHTML=`
+  document.getElementById('statsContent').innerHTML=toggle+`
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-label">Total Spent</div><div class="stat-value">₹${total.toFixed(0)}</div><div class="stat-sub">${snacks.length} purchases</div></div>
       <div class="stat-card"><div class="stat-label">Avg per Purchase</div><div class="stat-value">₹${avg.toFixed(0)}</div></div>
       <div class="stat-card"><div class="stat-label">Common Price</div><div class="stat-value">₹${commonP[0]}</div><div class="stat-sub">${commonP[1]}× bought</div></div>
       <div class="stat-card"><div class="stat-label">Peak Time</div><div class="stat-value" style="font-size:15px">${peakTime}</div><div class="stat-sub">${tb[peakTime]} purchases</div></div>
-      <div class="stat-card"><div class="stat-label">Budget Left</div><div class="stat-value" style="color:#4ade80">₹${(state.budget-total).toFixed(0)}</div><div class="stat-sub">of ₹${state.budget}</div></div>
+      ${all?`<div class="stat-card"><div class="stat-label">Cycles</div><div class="stat-value">${state.history.length+(state.budget>0?1:0)}</div><div class="stat-sub">incl. current</div></div>`:`<div class="stat-card"><div class="stat-label">Budget Left</div><div class="stat-value" style="color:${state.budget-total<0?'#ff6b6b':'#4ade80'}">₹${(state.budget-total).toFixed(0)}</div><div class="stat-sub">of ₹${state.budget}</div></div>`}
       <div class="stat-card"><div class="stat-label">Top Category</div><div class="stat-value" style="font-size:14px">${sortedCats[0][0].split(' ')[0]}</div><div class="stat-sub">${sortedCats[0][0].split(' ').slice(1).join(' ')}</div></div>
     </div>
     <div class="section-title">Time of Day</div>
     <div class="stat-card" style="margin-bottom:12px;"><div class="time-grid">${Object.entries(tb).map(([k,v])=>`<div class="time-cell"><div class="time-cell-label">${k}</div><div class="time-cell-val" style="color:${v===Math.max(...Object.values(tb))?'#f7c948':'var(--text)'}">${v}</div></div>`).join('')}</div></div>
     <div class="section-title">Categories</div>
     <div class="stat-card" style="margin-bottom:12px;">${sortedCats.map(([k,v])=>`<div class="bar-row"><div class="bar-label">${k.split(' ')[0]} ${k.split(' ').slice(1).join(' ').substring(0,8)}</div><div class="bar-track"><div class="bar-fill" style="width:${v/maxCat*100}%;background:#f7c948"></div></div><div class="bar-val">${v}x</div></div>`).join('')}</div>
-    <div class="section-title">Quarter Spending</div>
-    <div class="stat-card">${qSpend.map((v,i)=>{const pct=Math.max(0,(1-v/state.qBudget)*100);const c=getColor(pct);return `<div class="bar-row"><div class="bar-label">Q${i+1}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,v/state.qBudget*100)}%;background:${c}"></div></div><div class="bar-val">₹${v.toFixed(0)}</div></div>`;}).join('')}</div>`;
+    ${all?'':`<div class="section-title">Quarter Spending</div>
+    <div class="stat-card">${qSpend.map((v,i)=>{const pct=Math.max(0,(1-v/state.qBudget)*100);const c=getColor(pct);return `<div class="bar-row"><div class="bar-label">Q${i+1}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,v/state.qBudget*100)}%;background:${c}"></div></div><div class="bar-val">₹${v.toFixed(0)}</div></div>`;}).join('')}</div>`}`+(all?renderPastCycles():'');
+}
+
+// ---- CSV import ----
+// Format (header required):
+// type,cycle,start,budget,date,time,category,amount
+// cycle,1,2026-05-01,2000,,,,
+// txn,1,,,2026-05-02,10:26,🍟 Chips,40
+let pendingImport=null;
+function parseCSVLine(l){ const out=[];let cur='',q=false; for(const ch of l){ if(ch==='"'){q=!q;} else if(ch===','&&!q){out.push(cur);cur='';} else cur+=ch; } out.push(cur); return out.map(s=>s.trim()); }
+function readImport(e) {
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const sum=document.getElementById('importSummary'); const btn=document.getElementById('importBtn');
+    try { pendingImport=buildImport(r.result); }
+    catch(err){ pendingImport=null; btn.style.display='none'; sum.textContent='❌ '+err.message; return; }
+    const p=pendingImport; const n=p.cycles.reduce((a,c)=>a+c.snacks.length,0);
+    sum.textContent=`✅ ${p.cycles.length} cycles, ${n} purchases.\n`+p.cycles.map(c=>{const st=new Date(c.startDate);const en=new Date(st);en.setDate(en.getDate()+27);return `${fmtDate(st)} – ${fmtDate(en)}: ₹${c.budget} budget, ${c.snacks.length} buys, ₹${c.snacks.reduce((a,x)=>a+x.price,0).toFixed(0)} spent`;}).join('\n')+`\nActive cycle: ${p.active?fmtDate(new Date(p.active.startDate)):'none (all past)'}`;
+    btn.style.display='block';
+  };
+  r.readAsText(f);
+}
+function buildImport(text) {
+  const lines=text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(l=>l.trim());
+  const head=parseCSVLine(lines[0]).map(h=>h.toLowerCase());
+  if(head.join(',')!=='type,cycle,start,budget,date,time,category,amount') throw new Error('Unexpected header: '+lines[0]);
+  const cycles={}; const txns=[];
+  lines.slice(1).forEach((l,i)=>{
+    const [type,cyc,start,budget,date,time,cat,amt]=parseCSVLine(l);
+    if(type==='cycle'){ const b=parseFloat(budget); const d=new Date(start+'T00:00'); if(!(b>0)||isNaN(d)) throw new Error(`Row ${i+2}: bad cycle`); cycles[cyc]={startDate:d.toISOString(),budget:b,qBudget:b/4,snacks:[]}; }
+    else if(type==='txn'){ const d=new Date(date+'T'+time); const p=parseFloat(amt); if(isNaN(d)||!(p>0)||!cat) throw new Error(`Row ${i+2}: bad purchase`); txns.push({cyc,d,p,cat}); }
+    else throw new Error(`Row ${i+2}: unknown type "${type}"`);
+  });
+  let id=Date.now();
+  txns.sort((a,b)=>a.d-b.d).forEach(t=>{
+    const c=cycles[t.cyc]; if(!c) throw new Error(`Purchase on ${t.d.toDateString()} has no cycle ${t.cyc}`);
+    const st=new Date(c.startDate); const q=Math.floor((t.d-st)/(7*86400000));
+    if(q<0||q>3) throw new Error(`Purchase on ${t.d.toDateString()} is outside cycle ${t.cyc}`);
+    c.snacks.unshift({id:id++,price:t.p,cat:t.cat,quarter:q,time:t.d.toISOString(),hour:t.d.getHours()});
+  });
+  const list=Object.values(cycles).sort((a,b)=>new Date(a.startDate)-new Date(b.startDate));
+  if(!list.length) throw new Error('No cycles in file');
+  list.forEach(recalc);
+  const now=Date.now(); const last=list[list.length-1];
+  const active=(now<new Date(last.startDate).getTime()+28*86400000)?last:null;
+  return {cycles:list,active};
+}
+function applyImport() {
+  if(!pendingImport) return;
+  const {cycles,active}=pendingImport;
+  const cats=new Set(state.cats); cycles.forEach(c=>c.snacks.forEach(s=>cats.add(s.cat)));
+  const past=active?cycles.slice(0,-1):cycles; const cur=active||cycles[cycles.length-1];
+  state={budget:cur.budget,qBudget:cur.qBudget,quarters:cur.quarters,snacks:cur.snacks,startDate:cur.startDate,cats:[...cats],history:active?past:cycles.slice(0,-1)};
+  save(); pendingImport=null;
+  document.getElementById('setupScreen').style.display='none'; document.getElementById('mainApp').style.display='block'; showTab('home');
 }
 </script>
 </body>
