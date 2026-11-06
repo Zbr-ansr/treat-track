@@ -244,7 +244,7 @@ let state = { budget:0, qBudget:0, quarters:[{b:0,s:0},{b:0,s:0},{b:0,s:0},{b:0,
 
 function save() { localStorage.setItem('treattrack_v3', JSON.stringify(state)); }
 function resetApp() { localStorage.removeItem('treattrack_v3'); location.reload(); }
-function load() { try { const d=localStorage.getItem('treattrack_v3'); if(d){ state=JSON.parse(d); if(!state.cats) state.cats=[...DEFAULT_CATS]; if(!state.history) state.history=[]; if(state.budget>0) recalc(state); }} catch(e){} }
+function load() { try { const d=localStorage.getItem('treattrack_v3'); if(d){ state=JSON.parse(d); if(!state.cats) state.cats=[...DEFAULT_CATS]; if(!state.history) state.history=[]; recalcAll(); }} catch(e){} }
 
 load();
 if (state.budget > 0) { document.getElementById('setupScreen').style.display='none'; document.getElementById('mainApp').style.display='block'; showTab('home'); }
@@ -283,9 +283,17 @@ function previewBudget() {
 
 // Quarter balances are derived from purchases: each quarter starts at qBudget,
 // any overspend (negative balance) of the previous quarter is deducted once.
-function recalc(c) {
-  let carry=0;
+// Overspend also carries across cycles: a negative Q4 balance is deducted from the next cycle's Q1.
+function recalc(c, carryIn=0) {
+  c.carryIn=carryIn; let carry=carryIn;
   c.quarters=[0,1,2,3].map(i=>{ const s=c.snacks.filter(x=>x.quarter===i).reduce((a,x)=>a+x.price,0); const b=c.qBudget+carry-s; carry=Math.min(0,b); return {b,s}; });
+}
+function recalcChain(cycles) {
+  let carry=0; cycles.forEach(c=>{ recalc(c,carry); carry=Math.min(0,c.quarters[3].b); });
+}
+function recalcAll() {
+  state.history.sort((a,b)=>new Date(a.startDate)-new Date(b.startDate));
+  recalcChain(state.budget>0?[...state.history,state]:state.history);
 }
 function archiveCurrent() {
   if(state.budget>0 && state.startDate) state.history.push({startDate:state.startDate,budget:state.budget,qBudget:state.qBudget,quarters:state.quarters,snacks:state.snacks});
@@ -298,7 +306,7 @@ function startBudget() {
   const v=parseFloat(document.getElementById('budgetInput').value); if(!v||v<=0){alert('Enter a valid budget.');return;}
   const monday=nextMonday(); state.budget=v; state.qBudget=v/4;
   state.quarters=Array.from({length:4},()=>({b:v/4,s:0})); state.snacks=[]; state.startDate=monday.toISOString();
-  save(); document.getElementById('setupScreen').style.display='none'; document.getElementById('mainApp').style.display='block'; showTab('home');
+  recalcAll(); save(); document.getElementById('setupScreen').style.display='none'; document.getElementById('mainApp').style.display='block'; showTab('home');
 }
 
 function showTab(t) {
@@ -402,7 +410,7 @@ function logSnack() {
   const cq=getCurrentQ();
   // Allow negative — do NOT zero out, so balance shows negative
   const now=new Date(); state.snacks.unshift({id:Date.now(),price,cat,quarter:cq,time:now.toISOString(),hour:now.getHours()});
-  recalc(state);
+  recalcAll();
   save(); document.getElementById('snackPrice').value=''; document.getElementById('overflowWarning').classList.remove('show');
   const btn=document.getElementById('addBtn'); btn.textContent='✅'; btn.style.background='#4ade80';
   setTimeout(()=>{ btn.textContent='Add'; btn.style.background=''; closeModal('modalLog'); renderHome(); },800);
@@ -410,7 +418,7 @@ function logSnack() {
 
 function deleteSnack(id) {
   const s=state.snacks.find(x=>x.id===id); if(!s) return;
-  state.snacks=state.snacks.filter(x=>x.id!==id); recalc(state); save(); renderHistory();
+  state.snacks=state.snacks.filter(x=>x.id!==id); recalcAll(); save(); renderHistory();
 }
 
 function renderCatGrid() {
@@ -434,9 +442,9 @@ function renderPastCycles() {
   if(!state.history.length) return '';
   return `<div class="section-title">Past Cycles</div>`+[...state.history].reverse().map(c=>{
     const st=new Date(c.startDate); const en=new Date(st); en.setDate(en.getDate()+27);
-    const spent=c.snacks.reduce((a,x)=>a+x.price,0); const left=c.budget-spent;
+    const spent=c.snacks.reduce((a,x)=>a+x.price,0); const left=c.budget+(c.carryIn||0)-spent;
     return `<div class="cyc-card"><div class="cyc-top"><span>${fmtDate(st)} – ${fmtDate(en)}</span><span style="color:${left<0?'#ff6b6b':'#4ade80'}">₹${left.toFixed(0)} left</span></div>
-      <div class="cyc-sub">Budget ₹${c.budget.toFixed(0)} · Spent ₹${spent.toFixed(0)} · ${c.snacks.length} purchases</div>
+      <div class="cyc-sub">Budget ₹${c.budget.toFixed(0)}${c.carryIn?` · Carried ₹${c.carryIn.toFixed(0)}`:''} · Spent ₹${spent.toFixed(0)} · ${c.snacks.length} purchases</div>
       <div class="cyc-sub">${c.quarters.map((q,i)=>`Q${i+1} ₹${q.s.toFixed(0)}`).join(' · ')}</div></div>`;
   }).join('');
 }
@@ -461,7 +469,7 @@ function renderStats() {
       <div class="stat-card"><div class="stat-label">Avg per Purchase</div><div class="stat-value">₹${avg.toFixed(0)}</div></div>
       <div class="stat-card"><div class="stat-label">Common Price</div><div class="stat-value">₹${commonP[0]}</div><div class="stat-sub">${commonP[1]}× bought</div></div>
       <div class="stat-card"><div class="stat-label">Peak Time</div><div class="stat-value" style="font-size:15px">${peakTime}</div><div class="stat-sub">${tb[peakTime]} purchases</div></div>
-      ${all?`<div class="stat-card"><div class="stat-label">Cycles</div><div class="stat-value">${state.history.length+(state.budget>0?1:0)}</div><div class="stat-sub">incl. current</div></div>`:`<div class="stat-card"><div class="stat-label">Budget Left</div><div class="stat-value" style="color:${state.budget-total<0?'#ff6b6b':'#4ade80'}">₹${(state.budget-total).toFixed(0)}</div><div class="stat-sub">of ₹${state.budget}</div></div>`}
+      ${all?`<div class="stat-card"><div class="stat-label">Cycles</div><div class="stat-value">${state.history.length+(state.budget>0?1:0)}</div><div class="stat-sub">incl. current</div></div>`:`<div class="stat-card"><div class="stat-label">Budget Left</div><div class="stat-value" style="color:${state.budget+(state.carryIn||0)-total<0?'#ff6b6b':'#4ade80'}">₹${(state.budget+(state.carryIn||0)-total).toFixed(0)}</div><div class="stat-sub">of ₹${state.budget}${state.carryIn?` (₹${state.carryIn.toFixed(0)} carried)`:''}</div></div>`}
       <div class="stat-card"><div class="stat-label">Top Category</div><div class="stat-value" style="font-size:14px">${sortedCats[0][0].split(' ')[0]}</div><div class="stat-sub">${sortedCats[0][0].split(' ').slice(1).join(' ')}</div></div>
     </div>
     <div class="section-title">Time of Day</div>
@@ -512,7 +520,7 @@ function buildImport(text) {
   });
   const list=Object.values(cycles).sort((a,b)=>new Date(a.startDate)-new Date(b.startDate));
   if(!list.length) throw new Error('No cycles in file');
-  list.forEach(recalc);
+  recalcChain(list);
   const now=Date.now(); const last=list[list.length-1];
   const active=(now<new Date(last.startDate).getTime()+28*86400000)?last:null;
   return {cycles:list,active};
