@@ -200,7 +200,7 @@
         <button class="back-btn" onclick="showSubpage(null)">‹ Settings</button>
         <div class="page-title">Import CSV</div>
         <div class="imp-msg">Replaces ALL app data with the cycles and purchases in the file. The cycle containing today becomes the active one; earlier cycles go to Past Cycles.</div>
-        <input type="file" id="importFile" accept=".csv,text/csv,text/plain" onchange="readImport(event)" style="color:var(--text);margin:8px 0;">
+        <input type="file" id="importFile" onchange="readImport(event)" style="color:var(--text);margin:8px 0;">
         <div class="imp-msg" id="importSummary"></div>
         <button class="btn btn-primary" id="importBtn" style="display:none" onclick="applyImport()">Replace data with import</button>
       </div>
