@@ -193,7 +193,7 @@
           <div class="settings-row" onclick="showSubpage('import')"><span>Import CSV</span><span class="arr">›</span></div>
           <div class="settings-row danger" onclick="resetApp()"><span>Reset</span><span class="arr">›</span></div>
         </div>
-        <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:18px">v7 · tolerant import</div>
+        <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:18px">v8 · edit moves quarter</div>
       </div>
       <div id="subStats" class="subpage"><button class="back-btn" onclick="showSubpage(null)">‹ Settings</button><div class="page-title">Stats</div><div id="statsContent"></div></div>
       <div id="subHistory" class="subpage"><button class="back-btn" onclick="showSubpage(null)">‹ Settings</button><div class="page-title">History</div><div id="historyList"></div></div>
@@ -382,7 +382,9 @@ function openEditModal(id) {
   editingId=id;
   document.getElementById('snackCat').innerHTML=`<option>${s.cat}</option>`;
   document.getElementById('snackPrice').value=s.price;
-  document.getElementById('snackTime').value=toLocalInput(new Date(s.time));
+  const ti=document.getElementById('snackTime'); ti.value=toLocalInput(new Date(s.time));
+  const cs=new Date(state.startDate); cs.setHours(0,0,0,0); const ce=new Date(cs); ce.setDate(ce.getDate()+27); ce.setHours(23,59);
+  ti.min=toLocalInput(cs); ti.max=toLocalInput(ce);
   document.getElementById('overflowWarning').classList.remove('show');
   setModalMode(true);
   document.getElementById('modalLog').classList.add('open');
@@ -391,7 +393,13 @@ function saveEdit() {
   const s=state.snacks.find(x=>x.id===editingId); const v=document.getElementById('snackTime').value;
   if(!s||!v) return;
   const d=new Date(v); if(isNaN(d)) return;
-  s.time=d.toISOString(); s.hour=d.getHours(); save();
+  // Re-assign the quarter from the new date; must stay inside the current cycle
+  const cs=new Date(state.startDate); cs.setHours(0,0,0,0);
+  const q=Math.floor((d-cs)/(7*86400000));
+  if(q<0||q>3){ alert('Pick a date inside the current cycle ('+fmtDate(cs)+' – '+fmtDate(getQEnd(3))+').'); return; }
+  s.time=d.toISOString(); s.hour=d.getHours(); s.quarter=q;
+  state.snacks.sort((a,b)=>new Date(b.time)-new Date(a.time));
+  recalcAll(); save();
   closeModal('modalLog'); renderHistory();
 }
 function openLogModal() {
