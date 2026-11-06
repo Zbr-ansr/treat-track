@@ -193,7 +193,7 @@
           <div class="settings-row" onclick="showSubpage('import')"><span>Import CSV</span><span class="arr">›</span></div>
           <div class="settings-row danger" onclick="resetApp()"><span>Reset</span><span class="arr">›</span></div>
         </div>
-        <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:18px">v6 · import+paste</div>
+        <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:18px">v7 · tolerant import</div>
       </div>
       <div id="subStats" class="subpage"><button class="back-btn" onclick="showSubpage(null)">‹ Settings</button><div class="page-title">Stats</div><div id="statsContent"></div></div>
       <div id="subHistory" class="subpage"><button class="back-btn" onclick="showSubpage(null)">‹ Settings</button><div class="page-title">History</div><div id="historyList"></div></div>
@@ -491,7 +491,8 @@ function renderStats() {
 // cycle,1,2026-05-01,2000,,,,
 // txn,1,,,2026-05-02,10:26,🍟 Chips,40
 let pendingImport=null;
-function parseCSVLine(l){ const out=[];let cur='',q=false; for(const ch of l){ if(ch==='"'){q=!q;} else if(ch===','&&!q){out.push(cur);cur='';} else cur+=ch; } out.push(cur); return out.map(s=>s.trim()); }
+let CSV_SEP=',';
+function parseCSVLine(l){ const out=[];let cur='',q=false; for(const ch of l){ if(ch==='"'){q=!q;} else if(ch===CSV_SEP&&!q){out.push(cur);cur='';} else cur+=ch; } out.push(cur); return out.map(s=>s.trim()); }
 function readImport(e) {
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
@@ -510,9 +511,13 @@ function checkImport(text) {
   }
 }
 function buildImport(text) {
-  const lines=text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(l=>l.trim());
-  const head=parseCSVLine(lines[0]).map(h=>h.toLowerCase());
-  if(head.join(',')!=='type,cycle,start,budget,date,time,category,amount') throw new Error('Unexpected header: '+lines[0]);
+  if(text.startsWith('PK')) throw new Error('This is the Excel (.xlsx) file. Pick the .csv file instead.');
+  text=text.replace(/\u0000/g,'').replace(/^[\uFEFF\uFFFE\u00EF\u00BB\u00BF\s]+/,'');
+  const lines=text.split(/\r\n|\r|\n/).filter(l=>l.replace(/[,;\t\s"]/g,''));
+  if(!lines.length) throw new Error('File is empty');
+  const first=lines[0]; CSV_SEP=[',',';','\t'].sort((a,b)=>first.split(b).length-first.split(a).length)[0];
+  const head=parseCSVLine(first).map(h=>h.toLowerCase().replace(/[^a-z]/g,'')).filter(Boolean);
+  if(head.slice(0,8).join(',')!=='type,cycle,start,budget,date,time,category,amount') throw new Error('Unexpected header: '+first.slice(0,80));
   const cycles={}; const txns=[];
   lines.slice(1).forEach((l,i)=>{
     const [type,cyc,start,budget,date,time,cat,amt]=parseCSVLine(l);
