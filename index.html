@@ -193,6 +193,7 @@
           <div class="settings-row" onclick="showSubpage('import')"><span>Import CSV</span><span class="arr">›</span></div>
           <div class="settings-row danger" onclick="resetApp()"><span>Reset</span><span class="arr">›</span></div>
         </div>
+        <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:18px">v5 · import+carry</div>
       </div>
       <div id="subStats" class="subpage"><button class="back-btn" onclick="showSubpage(null)">‹ Settings</button><div class="page-title">Stats</div><div id="statsContent"></div></div>
       <div id="subHistory" class="subpage"><button class="back-btn" onclick="showSubpage(null)">‹ Settings</button><div class="page-title">History</div><div id="historyList"></div></div>
@@ -200,7 +201,11 @@
         <button class="back-btn" onclick="showSubpage(null)">‹ Settings</button>
         <div class="page-title">Import CSV</div>
         <div class="imp-msg">Replaces ALL app data with the cycles and purchases in the file. The cycle containing today becomes the active one; earlier cycles go to Past Cycles.</div>
-        <input type="file" id="importFile" onchange="readImport(event)" style="color:var(--text);margin:8px 0;">
+        <input type="file" id="importFile" onchange="readImport(event)" style="display:none">
+        <button class="btn btn-primary" onclick="document.getElementById('importFile').click()">Choose file</button>
+        <div class="imp-msg" style="margin-top:14px">Or paste the CSV text here:</div>
+        <textarea id="importText" rows="6" style="width:100%;background:var(--card2);color:var(--text);border:1.5px solid var(--border);border-radius:12px;padding:10px;font-size:12px;" placeholder="type,cycle,start,budget,date,time,category,amount"></textarea>
+        <button class="btn" style="background:var(--card2);color:var(--text);border:1.5px solid var(--border)" onclick="checkImport(document.getElementById('importText').value)">Check pasted text</button>
         <div class="imp-msg" id="importSummary"></div>
         <button class="btn btn-primary" id="importBtn" style="display:none" onclick="applyImport()">Replace data with import</button>
       </div>
@@ -324,7 +329,7 @@ function showSubpage(page) {
   if(page==='stats') renderStats();
   if(page==='history') renderHistory();
   if(page==='categories') renderCatGrid();
-  if(page==='import'){ document.getElementById('importFile').value=''; document.getElementById('importSummary').textContent=''; document.getElementById('importBtn').style.display='none'; }
+  if(page==='import'){ document.getElementById('importFile').value=''; document.getElementById('importText').value=''; document.getElementById('importSummary').textContent=''; document.getElementById('importBtn').style.display='none'; }
 }
 
 function renderHome() {
@@ -490,15 +495,19 @@ function parseCSVLine(l){ const out=[];let cur='',q=false; for(const ch of l){ i
 function readImport(e) {
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
-  r.onload=()=>{
+  r.onload=()=>checkImport(r.result);
+  r.onerror=()=>{ document.getElementById('importSummary').textContent='❌ Could not read file'; };
+  r.readAsText(f);
+}
+function checkImport(text) {
+  {
     const sum=document.getElementById('importSummary'); const btn=document.getElementById('importBtn');
-    try { pendingImport=buildImport(r.result); }
+    try { if(!text||!text.trim()) throw new Error('Nothing to import'); pendingImport=buildImport(text); }
     catch(err){ pendingImport=null; btn.style.display='none'; sum.textContent='❌ '+err.message; return; }
     const p=pendingImport; const n=p.cycles.reduce((a,c)=>a+c.snacks.length,0);
     sum.textContent=`✅ ${p.cycles.length} cycles, ${n} purchases.\n`+p.cycles.map(c=>{const st=new Date(c.startDate);const en=new Date(st);en.setDate(en.getDate()+27);return `${fmtDate(st)} – ${fmtDate(en)}: ₹${c.budget} budget, ${c.snacks.length} buys, ₹${c.snacks.reduce((a,x)=>a+x.price,0).toFixed(0)} spent`;}).join('\n')+`\nActive cycle: ${p.active?fmtDate(new Date(p.active.startDate)):'none (all past)'}`;
     btn.style.display='block';
-  };
-  r.readAsText(f);
+  }
 }
 function buildImport(text) {
   const lines=text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(l=>l.trim());
