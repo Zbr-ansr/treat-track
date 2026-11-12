@@ -1,4 +1,4 @@
-const CACHE = 'treattrack-v8';
+const CACHE = 'treattrack-v9';
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
