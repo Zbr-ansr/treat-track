@@ -132,6 +132,51 @@
   .cyc-top { display:flex; justify-content:space-between; font-size:13px; font-weight:700; }
   .cyc-sub { font-size:11px; color:var(--muted); margin-top:3px; }
   .imp-msg { font-size:13px; color:var(--muted); line-height:1.5; margin:10px 0; white-space:pre-line; }
+  .beta-pill { display:inline-block; background:var(--c3); color:#000; font-size:10px; font-weight:900; letter-spacing:1px; padding:3px 10px; border-radius:20px; margin-bottom:6px; }
+  .total-wrap { position:relative; margin-bottom:12px; }
+  .total-wrap span { position:absolute; left:16px; top:50%; transform:translateY(-50%); font-size:20px; font-weight:700; color:var(--muted); }
+  .total-in { width:100%; padding:13px 13px 13px 36px; font-size:24px; font-weight:800; background:var(--card2); border:1.5px solid var(--border); border-radius:12px; color:var(--text); outline:none; -moz-appearance:textfield; }
+  .total-in::-webkit-outer-spin-button, .total-in::-webkit-inner-spin-button, .amt-in::-webkit-outer-spin-button, .amt-in::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  .total-in:focus, .amt-in:focus { border-color:var(--c3); }
+  .item-row { display:flex; gap:6px; align-items:center; margin-bottom:8px; }
+  .cat-pick { flex:1; min-width:0; padding:12px; background:var(--card2); border:1.5px solid var(--border); border-radius:12px; color:var(--text); font-size:14px; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+  .cat-pick.empty { color:var(--muted); border-style:dashed; }
+  .cat-pick:disabled { opacity:.5; }
+  .ns-name { outline:none; border-color:var(--c5); border-style:dashed; cursor:text; }
+  .ns-name::placeholder { color:var(--muted); }
+  .amt-in { width:84px; padding:12px 8px; background:var(--card2); border:1.5px solid var(--border); border-radius:12px; color:var(--text); font-size:15px; font-weight:700; outline:none; text-align:right; -moz-appearance:textfield; }
+  .amt-in.auto { color:var(--c3); border-style:dashed; }
+  .ns-btn, .rm-btn { width:40px; height:44px; flex-shrink:0; background:var(--card2); border:1.5px solid var(--border); border-radius:12px; font-size:16px; cursor:pointer; color:var(--muted); }
+  .ns-btn { opacity:.4; }
+  .ns-btn.on { opacity:1; border-color:var(--c5); }
+  .alloc-bar { display:flex; height:8px; border-radius:4px; overflow:hidden; background:var(--border); margin:4px 0 6px; }
+  .alloc-txt { font-size:12px; color:var(--muted); margin-bottom:10px; min-height:16px; }
+  .alloc-txt.bad { color:var(--c5); font-weight:700; }
+  .row-tools { display:flex; gap:8px; margin-bottom:12px; }
+  .tool-btn { flex:1; padding:10px; background:none; border:1.5px dashed var(--border); border-radius:12px; color:var(--text); font-weight:700; font-size:13px; cursor:pointer; }
+  .btn-primary:disabled { opacity:.35; }
+  .pick-list { max-height:62vh; overflow-y:auto; }
+  .p-chip { width:100%; display:flex; justify-content:space-between; align-items:center; padding:14px; margin-bottom:8px; background:var(--card2); border:1.5px solid var(--border); border-radius:12px; color:var(--text); font-size:15px; font-weight:700; cursor:pointer; }
+  .p-chip.open { border-color:var(--c3); }
+  .k-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; margin:-2px 0 12px 10px; }
+  .k-chip { padding:11px 10px; background:var(--card); border:1.5px solid var(--border); border-radius:10px; color:var(--text); font-size:13px; text-align:left; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .k-chip.sel { border-color:var(--c3); color:var(--c3); }
+  .k-chip.new { border-style:dashed; color:var(--muted); }
+  .new-row { display:flex; gap:6px; grid-column:1 / -1; }
+  .new-row input { flex:1; min-width:0; padding:10px; background:var(--card2); border:1.5px solid var(--c3); border-radius:10px; color:var(--text); font-size:14px; outline:none; }
+  .new-row button { padding:0 14px; background:var(--c3); color:#000; border:none; border-radius:10px; font-weight:800; font-size:16px; }
+  .grp-card { background:var(--card); border-radius:14px; padding:12px 15px 4px; margin-bottom:8px; }
+  .grp-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+  .grp-item { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--border); cursor:pointer; }
+  .grp-item.ns { opacity:.45; cursor:default; }
+  .par-card { background:var(--card); border-radius:14px; padding:12px; margin-bottom:10px; }
+  .par-name { display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:15px; margin-bottom:10px; }
+  .par-card .cat-grid { margin-bottom:8px; }
+  .lock-val { padding:13px; background:var(--card2); border:1.5px solid var(--border); border-radius:12px; color:var(--muted); font-size:16px; }
+  .bar-row.click { cursor:pointer; }
+  .bar-row.kid .bar-label { padding-left:10px; color:var(--muted); }
+  .bar-label { width:100px; text-align:left; }
+  .field .total-in { padding:13px 13px 13px 36px; font-size:24px; font-weight:800; }
 </style>
 </head>
 <body>
@@ -191,9 +236,15 @@
           <div class="settings-row" onclick="showSubpage('history')"><span>History</span><span class="arr">›</span></div>
           <div class="settings-row" onclick="showSubpage('categories')"><span>Edit Categories</span><span class="arr">›</span></div>
           <div class="settings-row" onclick="showSubpage('import')"><span>Import CSV</span><span class="arr">›</span></div>
-          <div class="settings-row danger" onclick="resetApp()"><span>Reset</span><span class="arr">›</span></div>
         </div>
-        <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:18px">v9 · starts this week</div>
+        <div class="section-title" style="margin-top:20px">Data</div>
+        <div class="settings-menu">
+          <div class="settings-row" onclick="exportData()"><span>Back up data (JSON)</span><span class="arr">⤓</span></div>
+          <div class="settings-row" onclick="document.getElementById('restoreFile').click()"><span>Restore from backup</span><span class="arr">›</span></div>
+          <div class="settings-row danger" onclick="twoTap(this,'reset','erase ALL data',resetApp)"><span>Reset</span><span class="arr">›</span></div>
+        </div>
+        <input type="file" id="restoreFile" accept=".json,application/json" style="display:none" onchange="restoreBackup(event)">
+        <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:18px">v9 · splits + category tree</div>
       </div>
       <div id="subStats" class="subpage"><button class="back-btn" onclick="showSubpage(null)">‹ Settings</button><div class="page-title">Stats</div><div id="statsContent"></div></div>
       <div id="subHistory" class="subpage"><button class="back-btn" onclick="showSubpage(null)">‹ Settings</button><div class="page-title">History</div><div id="historyList"></div></div>
@@ -212,8 +263,9 @@
       <div id="subCategories" class="subpage">
         <button class="back-btn" onclick="showSubpage(null)">‹ Settings</button>
         <div class="page-title">Edit Categories</div>
-        <div class="cat-grid" id="catGrid"></div>
-        <div class="add-cat-row"><input type="text" id="newCatInput" placeholder="e.g. 🍕 Pizza"><button class="add-cat-btn" onclick="addCategory()">+</button></div>
+        <div id="catGrid"></div>
+        <div class="section-title">New parent</div>
+        <div class="add-cat-row"><input type="text" id="newParInput" placeholder="e.g. 🍜 Meals"><button class="add-cat-btn" onclick="addParentFromGrid()">+</button></div>
       </div>
     </div>
   </div>
@@ -232,24 +284,111 @@
   <div class="modal-overlay" id="modalLog" onclick="closeModalOutside(event,'modalLog')">
     <div class="modal">
       <div class="modal-handle"></div>
-      <h3 id="modalTitle">Log a Snack</h3>
+      <h3>Log a Purchase</h3>
       <div class="overflow-warning" id="overflowWarning"></div>
-      <div class="field"><label>Category</label><select id="snackCat"></select></div>
-      <div class="field"><label>Price (₹)</label><input type="number" id="snackPrice" placeholder="0" min="0" step="0.5" oninput="checkOverflow()"></div>
-      <div class="field" id="timeField" style="display:none"><label>Date &amp; Time</label><input type="datetime-local" id="snackTime"></div>
-      <button class="btn btn-primary" id="addBtn" onclick="submitModal()">Add</button>
+      <div class="field"><label>Total paid (₹)</label>
+        <div class="total-wrap"><span>₹</span><input class="total-in" type="number" inputmode="decimal" id="snackTotal" placeholder="0" min="0" step="0.5" oninput="updateAlloc()"></div></div>
+      <div class="field" style="margin-bottom:4px"><label>Items</label></div>
+      <div id="rows"></div>
+      <div class="alloc-bar" id="allocBar"></div>
+      <div class="alloc-txt" id="allocTxt"></div>
+      <div class="row-tools">
+        <button class="tool-btn" onclick="addRow()">＋ Split</button>
+        <button class="tool-btn" id="equalBtn" onclick="equalSplit()">÷ Equal</button>
+      </div>
+      <button class="btn btn-primary" id="addBtn" style="margin-top:0" onclick="logSnack()">Add</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalPick" style="z-index:110" onclick="closeModalOutside(event,'modalPick')">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <h3>Category</h3>
+      <div class="pick-list" id="pickList"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalEdit" onclick="closeModalOutside(event,'modalEdit')">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <h3>Edit Item</h3>
+      <div class="field"><label>Category</label><button class="cat-pick" style="width:100%" id="editCatBtn" onclick="openPicker('edit')"></button></div>
+      <div class="field"><label>Price (locked)</label><div class="lock-val" id="editPrice"></div></div>
+      <div class="field"><label>Date &amp; Time</label><input type="datetime-local" id="editTime"></div>
+      <div class="imp-msg" id="editGroupNote" style="margin-top:0">Time change applies to every item in this split purchase.</div>
+      <button class="btn btn-primary" onclick="saveEdit()">Save</button>
     </div>
   </div>
 </div>
 
 <script>
-const DEFAULT_CATS = ['🍟 Chips','🍫 Chocolate','🍬 Candy','🍪 Cookies','🥜 Nuts & Seeds','🍦 Ice Cream','🧁 Pastries','🍿 Popcorn','🥪 Savory Snacks','☕ Coffee','🍵 Tea','🥤 Soft Drinks','🧋 Milkshake','🧃 Juice','🍱 Other'];
+// Storage: same key as v8 — all new fields (tree, gid, gx, gxi) are additive, so older versions can still read this data.
+const KEY='treattrack_v3';
+const MISC='🍱 Misc';
+const DEFAULT_TREE=[
+  {name:'🥤 Drinks',  kids:['☕ Coffee','🍵 Tea','🥤 Soft Drinks','🧋 Milkshake','🧃 Juice']},
+  {name:'🍟 Crunchy', kids:['🍟 Chips','🍿 Popcorn','🥜 Nuts & Seeds']},
+  {name:'🥪 Savoury', kids:['🥪 Savory Snacks','🥪 Sandwich','🌯 Roll','🥐 Puff']},
+  {name:'🍫 Sweets',  kids:['🍫 Chocolate','🍬 Candy','🍦 Ice Cream']},
+  {name:'🍪 Bakery',  kids:['🍪 Cookies','🧁 Pastries','🫓 Biscuits','🍘 Crackers']},
+  {name:MISC,         kids:['🍱 Other']}
+];
+const SPLIT_COLS=['#f7c948','#4ade80','#60a5fa','#c084fc','#fb923c','#f472b6'];
 
-let state = { budget:0, qBudget:0, quarters:[{b:0,s:0},{b:0,s:0},{b:0,s:0},{b:0,s:0}], snacks:[], startDate:null, cats:[...DEFAULT_CATS], history:[] };
+let state = { budget:0, qBudget:0, quarters:[{b:0,s:0},{b:0,s:0},{b:0,s:0},{b:0,s:0}], snacks:[], startDate:null, cats:[], history:[], tree:null };
 
-function save() { localStorage.setItem('treattrack_v3', JSON.stringify(state)); }
-function resetApp() { localStorage.removeItem('treattrack_v3'); location.reload(); }
-function load() { try { const d=localStorage.getItem('treattrack_v3'); if(d){ state=JSON.parse(d); if(!state.cats) state.cats=[...DEFAULT_CATS]; if(!state.history) state.history=[]; recalcAll(); }} catch(e){} }
+const ico=c=>(c||'').split(' ')[0];
+const lbl=c=>(c||'').split(' ').slice(1).join(' ')||c;
+const r2=x=>Math.round(x*100)/100;
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const hasEmoji=s=>/\p{Extended_Pictographic}/u.test(s.split(' ')[0]);
+
+// Old records keep their original 'cat' string. The tree only maps cat -> parent,
+// so no purchase record is ever rewritten by the category change.
+function syncCats(){ state.cats=state.tree.flatMap(p=>p.kids); }
+function ensureTree(){
+  if(!state.tree) state.tree=JSON.parse(JSON.stringify(DEFAULT_TREE));
+  let misc=state.tree.find(p=>p.name===MISC); if(!misc){ misc={name:MISC,kids:[]}; state.tree.push(misc); }
+  const known=new Set(state.tree.flatMap(p=>p.kids));
+  const used=[...(state.cats||[]), ...state.snacks.map(s=>s.cat), ...state.history.flatMap(c=>c.snacks.map(s=>s.cat))];
+  used.forEach(c=>{ if(c&&!known.has(c)){ misc.kids.push(c); known.add(c); } });
+  syncCats();
+}
+function parentOf(cat){ const p=state.tree.find(p=>p.kids.includes(cat)); return p?p.name:MISC; }
+
+function save() { syncCats(); localStorage.setItem(KEY, JSON.stringify(state)); }
+function load() { try { const d=localStorage.getItem(KEY); if(d){ state=JSON.parse(d); if(!state.history) state.history=[]; ensureTree(); recalcAll(); } else { state.tree=JSON.parse(JSON.stringify(DEFAULT_TREE)); syncCats(); } } catch(e){ state.tree=JSON.parse(JSON.stringify(DEFAULT_TREE)); syncCats(); } }
+
+// Two-tap confirm (confirm() is unreliable in some contexts)
+const armed={};
+function twoTap(el,key,label,fn){
+  if(armed[key]){ clearTimeout(armed[key]); delete armed[key]; fn(); return; }
+  const old=el.innerHTML; el.innerHTML=`<span style="color:var(--c5)">Tap again: ${label}</span>`;
+  armed[key]=setTimeout(()=>{ delete armed[key]; el.innerHTML=old; },3000);
+}
+function resetApp() { localStorage.removeItem(KEY); location.reload(); }
+
+function restoreBackup(e) {
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ try {
+      const d=JSON.parse(r.result);
+      if(!d||!Array.isArray(d.snacks)||!('budget' in d)) throw new Error('Not a Treat Track backup');
+      const n=d.snacks.length+(d.history||[]).reduce((a,c)=>a+c.snacks.length,0);
+      if(!confirm(`Backup has ${n} purchases.\nThis REPLACES all current data. Continue?`)){ e.target.value=''; return; }
+      localStorage.setItem(KEY,r.result); location.reload();
+    } catch(err){ alert('Restore failed: '+err.message); } };
+  r.readAsText(f);
+}
+async function exportData() {
+  const raw=localStorage.getItem(KEY);
+  if(!raw){ alert('No data to back up.'); return; }
+  const d=new Date(); const p=n=>String(n).padStart(2,'0');
+  const name=`treattrack-backup-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.json`;
+  const file=new File([raw],name,{type:'application/json'});
+  try { if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:name}); return; } } catch(e){ if(e.name==='AbortError') return; }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(file); a.download=name; document.body.appendChild(a); a.click(); a.remove();
+}
 
 load();
 if (state.budget > 0) { document.getElementById('setupScreen').style.display='none'; document.getElementById('mainApp').style.display='block'; showTab('home'); }
@@ -262,7 +401,6 @@ function getColor(pct) {
   if (pct > 20) return '#fb923c';
   return '#ff6b6b';
 }
-
 function qColorCode(q, idx, cq) {
   if (idx > cq) return { color:'future', hex: 'var(--border)' };
   if (idx < cq) return { color:'done',   hex: 'var(--border)' };
@@ -270,13 +408,7 @@ function qColorCode(q, idx, cq) {
   return { color:'active', hex: getColor(pct) };
 }
 
-// Cycle start: Monday of the current week; if a previous cycle ends later, start the day after it (no overlap).
-function nextMonday() {
-  const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7));
-  const h=(state.history||[]).map(c=>new Date(c.startDate)).sort((a,b)=>b-a)[0];
-  if(h){ const after=new Date(h); after.setHours(0,0,0,0); after.setDate(after.getDate()+28); if(after>d) return after; }
-  return d;
-}
+function nextMonday() { const d=new Date(); d.setHours(0,0,0,0); const day=d.getDay(); const diff=day===1?0:(8-day)%7||7; d.setDate(d.getDate()+diff); return d; }
 function getQStart(i) { const s=new Date(state.startDate); s.setDate(s.getDate()+i*7); return s; }
 function getQEnd(i)   { const e=getQStart(i); e.setDate(e.getDate()+6); return e; }
 function fmtDate(d)   { return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}); }
@@ -292,16 +424,12 @@ function previewBudget() {
   box.classList.add('show');
 }
 
-// Quarter balances are derived from purchases: each quarter starts at qBudget,
-// any overspend (negative balance) of the previous quarter is deducted once.
-// Overspend also carries across cycles: a negative Q4 balance is deducted from the next cycle's Q1.
+// Quarter balances are derived from purchases (snack items only; 'not a snack' amounts are never stored as purchases).
 function recalc(c, carryIn=0) {
   c.carryIn=carryIn; let carry=carryIn;
   c.quarters=[0,1,2,3].map(i=>{ const s=c.snacks.filter(x=>x.quarter===i).reduce((a,x)=>a+x.price,0); const b=c.qBudget+carry-s; carry=Math.min(0,b); return {b,s}; });
 }
-function recalcChain(cycles) {
-  let carry=0; cycles.forEach(c=>{ recalc(c,carry); carry=Math.min(0,c.quarters[3].b); });
-}
+function recalcChain(cycles) { let carry=0; cycles.forEach(c=>{ recalc(c,carry); carry=Math.min(0,c.quarters[3].b); }); }
 function recalcAll() {
   state.history.sort((a,b)=>new Date(a.startDate)-new Date(b.startDate));
   recalcChain(state.budget>0?[...state.history,state]:state.history);
@@ -328,7 +456,6 @@ function showTab(t) {
   if(t==='home') renderHome();
   if(t==='settings') showSubpage(null);
 }
-
 function showSubpage(page) {
   ['stats','history','categories','import'].forEach(p=>{ document.getElementById('sub'+p.charAt(0).toUpperCase()+p.slice(1)).classList.toggle('active',p===page); });
   document.getElementById('settingsMain').style.display=page?'none':'block';
@@ -346,25 +473,15 @@ function renderHome() {
   document.getElementById('expiredBanner').style.display=expired?'block':'none';
   document.getElementById('circleArea').style.display=expired?'none':'block';
   if(expired) return;
-
   const cq=getCurrentQ(); const q=state.quarters[cq];
-  const isNeg = q.b < 0;
   const pct = Math.max(0, (q.b / state.qBudget) * 100);
-  const hex = isNeg ? '#ff6b6b' : getColor(pct);
-
+  const hex = q.b<0 ? '#ff6b6b' : getColor(pct);
   const circle = document.getElementById('bigCircle');
-  circle.style.borderColor = hex;
-  circle.style.boxShadow = `0 0 48px ${hex}30`;
-
+  circle.style.borderColor = hex; circle.style.boxShadow = `0 0 48px ${hex}30`;
   document.getElementById('circleQ').textContent = `Quarter ${cq+1}`;
   document.getElementById('circleDates').textContent = `${fmtDate(getQStart(cq))} – ${fmtDate(getQEnd(cq))}`;
-  const balEl = document.getElementById('circleBal');
-  balEl.textContent = `₹${q.b.toFixed(2)}`;
-  balEl.style.color = hex;
-
+  const balEl = document.getElementById('circleBal'); balEl.textContent = `₹${q.b.toFixed(2)}`; balEl.style.color = hex;
   document.getElementById('plusBtn').style.background = hex;
-
-  // Q dots
   const others=[0,1,2,3].filter(i=>i!==cq);
   document.getElementById('qDots').innerHTML=others.map(i=>{
     const {color, hex:dHex} = qColorCode(state.quarters[i],i,cq);
@@ -373,96 +490,221 @@ function renderHome() {
   }).join('');
 }
 
-let editingId=null;
-function setModalMode(edit) {
-  document.getElementById('modalTitle').textContent=edit?'Edit Time':'Log a Snack';
-  document.getElementById('timeField').style.display=edit?'block':'none';
-  document.getElementById('snackCat').disabled=edit;
-  document.getElementById('snackPrice').disabled=edit;
-  document.getElementById('addBtn').textContent=edit?'Save':'Add';
-}
-function toLocalInput(d) { const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; }
-function submitModal() { if(editingId!==null) saveEdit(); else logSnack(); }
-function openEditModal(id) {
-  const s=state.snacks.find(x=>x.id===id); if(!s) return;
-  editingId=id;
-  document.getElementById('snackCat').innerHTML=`<option>${s.cat}</option>`;
-  document.getElementById('snackPrice').value=s.price;
-  const ti=document.getElementById('snackTime'); ti.value=toLocalInput(new Date(s.time));
-  const cs=new Date(state.startDate); cs.setHours(0,0,0,0); const ce=new Date(cs); ce.setDate(ce.getDate()+27); ce.setHours(23,59);
-  ti.min=toLocalInput(cs); ti.max=toLocalInput(ce);
-  document.getElementById('overflowWarning').classList.remove('show');
-  setModalMode(true);
-  document.getElementById('modalLog').classList.add('open');
-}
-function saveEdit() {
-  const s=state.snacks.find(x=>x.id===editingId); const v=document.getElementById('snackTime').value;
-  if(!s||!v) return;
-  const d=new Date(v); if(isNaN(d)) return;
-  // Re-assign the quarter from the new date; must stay inside the current cycle
-  const cs=new Date(state.startDate); cs.setHours(0,0,0,0);
-  const q=Math.floor((d-cs)/(7*86400000));
-  if(q<0||q>3){ alert('Pick a date inside the current cycle ('+fmtDate(cs)+' – '+fmtDate(getQEnd(3))+').'); return; }
-  s.time=d.toISOString(); s.hour=d.getHours(); s.quarter=q;
-  state.snacks.sort((a,b)=>new Date(b.time)-new Date(a.time));
-  recalcAll(); save();
-  closeModal('modalLog'); renderHistory();
-}
+// ---------- Log modal: total + split rows ----------
+let rows=[];            // {cat, amt, ns}
+let pickTarget=null;    // row index, or 'edit'
+let openParent=null; let addingKid=null; let addingParent=false;
+
 function openLogModal() {
-  editingId=null; setModalMode(false); document.getElementById('snackPrice').value='';
-  document.getElementById('snackCat').innerHTML=state.cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  rows=[{cat:null,amt:0,ns:false}];
+  document.getElementById('snackTotal').value='';
+  document.getElementById('overflowWarning').classList.remove('show');
+  renderRows();
   document.getElementById('modalLog').classList.add('open');
-  setTimeout(()=>document.getElementById('snackPrice').focus(),300);
+  setTimeout(()=>document.getElementById('snackTotal').focus(),300);
 }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); if(id==='modalLog'){ editingId=null; setModalMode(false); } }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function closeModalOutside(e,id) { if(e.target===document.getElementById(id)) closeModal(id); }
 
-function checkOverflow() {
-  const price=parseFloat(document.getElementById('snackPrice').value)||0; const cq=getCurrentQ(); const bal=state.quarters[cq].b; const warn=document.getElementById('overflowWarning');
-  if(price>0&&price>bal){ const ov=(price-bal).toFixed(2); warn.textContent=cq<3?`⚠️ Overdrafts Q${cq+1} by ₹${ov} — carries to Q${cq+2}.`:`⚠️ Overdrafts Q${cq+1} by ₹${ov}. No more quarters!`; warn.classList.add('show'); }
-  else { warn.classList.remove('show'); }
+function renderRows() {
+  const n=rows.length;
+  document.getElementById('rows').innerHTML=rows.map((r,i)=>{
+    const catBtn=r.ns?`<input class="cat-pick ns-name" placeholder="🚫 Name, e.g. Pen" value="${esc(r.name||'')}" oninput="rows[${i}].name=this.value">`
+      :`<button class="cat-pick ${r.cat?'':'empty'}" onclick="openPicker(${i})">${r.cat?esc(r.cat):'Pick category ›'}</button>`;
+    let amt='';
+    if(n>1) amt=i<n-1?`<input class="amt-in" type="number" inputmode="decimal" step="0.5" value="${r.amt||''}" placeholder="₹" oninput="rows[${i}].amt=parseFloat(this.value)||0;updateAlloc()">`
+                     :`<input class="amt-in auto" id="lastAmt" readonly tabindex="-1">`;
+    const ns=n>1?`<button class="ns-btn ${r.ns?'on':''}" onclick="toggleNS(${i})" title="Not a snack">🚫</button>`:'';
+    const rm=n>1?`<button class="rm-btn" onclick="removeRow(${i})">✕</button>`:'';
+    return `<div class="item-row">${catBtn}${amt}${ns}${rm}</div>`;
+  }).join('');
+  document.getElementById('equalBtn').style.display=n>1?'block':'none';
+  document.getElementById('allocBar').style.display=n>1?'flex':'none';
+  updateAlloc();
 }
-
+function addRow(){ rows.push({cat:null,amt:0,ns:false}); renderRows(); }
+function removeRow(i){ rows.splice(i,1); renderRows(); }
+function toggleNS(i){ rows[i].ns=!rows[i].ns; renderRows(); }
+function equalSplit(){
+  const total=parseFloat(document.getElementById('snackTotal').value)||0; const n=rows.length; if(!total) return;
+  const each=Math.floor(total/n*100)/100; rows.forEach((r,i)=>{ if(i<n-1) r.amt=each; }); renderRows();
+}
+function updateAlloc() {
+  const total=parseFloat(document.getElementById('snackTotal').value)||0; const n=rows.length;
+  if(n===1) rows[0].amt=total;
+  else { const others=rows.slice(0,-1).reduce((a,r)=>a+r.amt,0); rows[n-1].amt=r2(total-others); const la=document.getElementById('lastAmt'); if(la) la.value=rows[n-1].amt.toFixed(2); }
+  const txt=document.getElementById('allocTxt'); let ok=total>0; let msg='';
+  if(n>1){
+    document.getElementById('allocBar').innerHTML=total>0?rows.map((r,i)=>`<div style="width:${Math.max(0,r.amt)/total*100}%;background:${r.ns?'#555':SPLIT_COLS[i%SPLIT_COLS.length]}"></div>`).join(''):'';
+    if(rows.some(r=>!(r.amt>0))){ ok=false; msg=total>0&&rows[n-1].amt<=0?`⚠️ Splits exceed total by ₹${(-rows[n-1].amt).toFixed(2)}`:'Enter each split amount'; }
+  }
+  const snackSum=r2(rows.filter(r=>!r.ns).reduce((a,r)=>a+r.amt,0)); const nsSum=r2(total-snackSum);
+  if(!msg&&n>1) msg=`Snacks ₹${snackSum.toFixed(2)}`+(nsSum>0?` · Not tracked ₹${nsSum.toFixed(2)}`:'');
+  if(rows.some(r=>!r.ns&&!r.cat)){ ok=false; if(!msg) msg=total>0?'Pick a category':''; }
+  if(!rows.some(r=>!r.ns)){ ok=false; msg='Nothing to track: every item is "Not a snack"'; }
+  txt.textContent=msg; txt.classList.toggle('bad',msg.startsWith('⚠️')||msg.startsWith('Nothing'));
+  document.getElementById('addBtn').disabled=!ok;
+  checkOverflow(snackSum);
+}
+function checkOverflow(amount) {
+  const cq=getCurrentQ(); const bal=state.quarters[cq].b; const warn=document.getElementById('overflowWarning');
+  if(amount>0&&amount>bal){ const ov=(amount-bal).toFixed(2); warn.textContent=cq<3?`⚠️ Overdrafts Q${cq+1} by ₹${ov} — carries to Q${cq+2}.`:`⚠️ Overdrafts Q${cq+1} by ₹${ov}. Carries to next cycle.`; warn.classList.add('show'); }
+  else warn.classList.remove('show');
+}
 function logSnack() {
-  const price=parseFloat(document.getElementById('snackPrice').value); const cat=document.getElementById('snackCat').value;
-  if(!price||price<=0){alert('Enter a valid price.');return;}
-  const cq=getCurrentQ();
-  // Allow negative — do NOT zero out, so balance shows negative
-  const now=new Date(); state.snacks.unshift({id:Date.now(),price,cat,quarter:cq,time:now.toISOString(),hour:now.getHours()});
-  recalcAll();
-  save(); document.getElementById('snackPrice').value=''; document.getElementById('overflowWarning').classList.remove('show');
+  updateAlloc(); if(document.getElementById('addBtn').disabled) return;
+  const snackRows=rows.filter(r=>!r.ns);
+  const total=parseFloat(document.getElementById('snackTotal').value);
+  const extra=r2(total-snackRows.reduce((a,r)=>a+r.amt,0));
+  const cq=getCurrentQ(); const now=new Date(); const base=Date.now();
+  const grouped=rows.length>1;
+  [...snackRows].reverse().forEach((r,k)=>{
+    const rec={id:base+k,price:r2(r.amt),cat:r.cat,quarter:cq,time:now.toISOString(),hour:now.getHours()};
+    if(grouped){ rec.gid=base; rec.gx=extra; rec.gxi=rows.filter(r=>r.ns).map(r=>({n:(r.name||'').trim()||'Not a snack',a:r2(r.amt)})); }
+    state.snacks.unshift(rec);
+  });
+  recalcAll(); save();
   const btn=document.getElementById('addBtn'); btn.textContent='✅'; btn.style.background='#4ade80';
   setTimeout(()=>{ btn.textContent='Add'; btn.style.background=''; closeModal('modalLog'); renderHome(); },800);
 }
 
-function deleteSnack(id) {
+// ---------- Category picker (parents → children) ----------
+function openPicker(target) {
+  pickTarget=target; addingKid=null; addingParent=false;
+  const cur=target==='edit'?editCat:rows[target].cat;
+  openParent=cur?parentOf(cur):null;
+  renderPicker(); document.getElementById('modalPick').classList.add('open');
+}
+function renderPicker() {
+  const cur=pickTarget==='edit'?editCat:(rows[pickTarget]||{}).cat;
+  document.getElementById('pickList').innerHTML=state.tree.map((p,pi)=>{
+    const open=openParent===p.name;
+    let h=`<button class="p-chip ${open?'open':''}" onclick="toggleParent(${pi})"><span>${esc(p.name)}</span><span style="color:var(--muted)">${p.kids.length} ${open?'▾':'›'}</span></button>`;
+    if(open){
+      h+=`<div class="k-grid">`+p.kids.map((k,ki)=>`<button class="k-chip ${k===cur?'sel':''}" onclick="pickKid(${pi},${ki})">${esc(k)}</button>`).join('');
+      h+=addingKid===pi?`<div class="new-row"><input id="newKid" placeholder="e.g. 🍩 Donut" onkeydown="if(event.key==='Enter')addKid(${pi})"><button onclick="addKid(${pi})">✓</button></div>`
+                       :`<button class="k-chip new" onclick="addingKid=${pi};renderPicker();setTimeout(()=>document.getElementById('newKid').focus(),50)">＋ New</button>`;
+      h+=`</div>`;
+    }
+    return h;
+  }).join('')+(addingParent?`<div class="new-row" style="margin-top:4px"><input id="newPar" placeholder="e.g. 🍜 Meals" onkeydown="if(event.key==='Enter')addParent()"><button onclick="addParent()">✓</button></div>`
+                          :`<button class="p-chip" style="border-style:dashed;color:var(--muted)" onclick="addingParent=true;renderPicker();setTimeout(()=>document.getElementById('newPar').focus(),50)"><span>＋ New parent</span></button>`);
+}
+function toggleParent(pi){ const n=state.tree[pi].name; openParent=openParent===n?null:n; addingKid=null; renderPicker(); }
+function choose(cat){
+  if(pickTarget==='edit'){ editCat=cat; document.getElementById('editCatBtn').textContent=cat; }
+  else { rows[pickTarget].cat=cat; renderRows(); }
+  closeModal('modalPick');
+}
+function pickKid(pi,ki){ choose(state.tree[pi].kids[ki]); }
+function addKid(pi){
+  let v=(document.getElementById('newKid').value||'').trim(); if(!v) return;
+  if(!hasEmoji(v)) v=ico(state.tree[pi].name)+' '+v;
+  if(state.cats.includes(v)){ alert('That category already exists.'); return; }
+  state.tree[pi].kids.push(v); save(); choose(v);
+}
+function addParent(){
+  let v=(document.getElementById('newPar').value||'').trim(); if(!v) return;
+  if(!hasEmoji(v)) v='📦 '+v;
+  if(state.tree.some(p=>p.name===v)){ alert('That parent already exists.'); return; }
+  state.tree.splice(state.tree.length-1,0,{name:v,kids:[]}); save();
+  addingParent=false; openParent=v; addingKid=state.tree.findIndex(p=>p.name===v); renderPicker();
+  setTimeout(()=>{ const el=document.getElementById('newKid'); if(el) el.focus(); },50);
+}
+
+// ---------- Edit modal: re-tag category + edit time (time applies to whole split) ----------
+let editingId=null; let editCat=null;
+function toLocalInput(d) { const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; }
+function openEditModal(id) {
   const s=state.snacks.find(x=>x.id===id); if(!s) return;
+  editingId=id; editCat=s.cat;
+  document.getElementById('editCatBtn').textContent=s.cat;
+  document.getElementById('editPrice').textContent='₹'+s.price.toFixed(2);
+  document.getElementById('editGroupNote').style.display=s.gid?'block':'none';
+  const ti=document.getElementById('editTime'); ti.value=toLocalInput(new Date(s.time));
+  const cs=new Date(state.startDate); cs.setHours(0,0,0,0); const ce=new Date(cs); ce.setDate(ce.getDate()+27); ce.setHours(23,59);
+  ti.min=toLocalInput(cs); ti.max=toLocalInput(ce);
+  document.getElementById('modalEdit').classList.add('open');
+}
+function saveEdit() {
+  const s=state.snacks.find(x=>x.id===editingId); const v=document.getElementById('editTime').value;
+  if(!s||!v) return;
+  const d=new Date(v); if(isNaN(d)) return;
+  const cs=new Date(state.startDate); cs.setHours(0,0,0,0);
+  const q=Math.floor((d-cs)/(7*86400000));
+  if(q<0||q>3){ alert('Pick a date inside the current cycle ('+fmtDate(cs)+' – '+fmtDate(getQEnd(3))+').'); return; }
+  s.cat=editCat;
+  const group=s.gid?state.snacks.filter(x=>x.gid===s.gid):[s];
+  group.forEach(x=>{ x.time=d.toISOString(); x.hour=d.getHours(); x.quarter=q; });
+  state.snacks.sort((a,b)=>new Date(b.time)-new Date(a.time));
+  recalcAll(); save(); closeModal('modalEdit'); renderHistory();
+}
+function deleteSnack(id) {
+  if(!state.snacks.find(x=>x.id===id)) return;
   state.snacks=state.snacks.filter(x=>x.id!==id); recalcAll(); save(); renderHistory();
 }
 
+// ---------- Edit Categories ----------
 function renderCatGrid() {
-  document.getElementById('catGrid').innerHTML=state.cats.map((c,i)=>`<div class="cat-chip"><span>${c}</span><button class="cat-del" onclick="deleteCat(${i})">✕</button></div>`).join('');
+  document.getElementById('catGrid').innerHTML=state.tree.map((p,pi)=>`<div class="par-card">
+    <div class="par-name"><span>${esc(p.name)}</span>${p.name===MISC?'':`<button class="cat-del" onclick="deleteParent(${pi})" title="Delete parent (children move to Misc)">✕</button>`}</div>
+    <div class="cat-grid">${p.kids.map((k,ki)=>`<div class="cat-chip"><span>${esc(k)}</span><button class="cat-del" onclick="deleteKid(${pi},${ki})">✕</button></div>`).join('')}</div>
+    <div class="add-cat-row"><input type="text" id="nk${pi}" placeholder="New in ${esc(lbl(p.name))}"><button class="add-cat-btn" onclick="addKidFromGrid(${pi})">+</button></div></div>`).join('');
 }
-function addCategory() { const val=document.getElementById('newCatInput').value.trim(); if(!val) return; state.cats.push(val); save(); renderCatGrid(); document.getElementById('newCatInput').value=''; }
-function deleteCat(i) { state.cats.splice(i,1); save(); renderCatGrid(); }
+function addKidFromGrid(pi){
+  let v=document.getElementById('nk'+pi).value.trim(); if(!v) return;
+  if(!hasEmoji(v)) v=ico(state.tree[pi].name)+' '+v;
+  if(state.cats.includes(v)){ alert('That category already exists.'); return; }
+  state.tree[pi].kids.push(v); save(); renderCatGrid();
+}
+function addParentFromGrid(){
+  let v=document.getElementById('newParInput').value.trim(); if(!v) return;
+  if(!hasEmoji(v)) v='📦 '+v;
+  if(state.tree.some(p=>p.name===v)){ alert('That parent already exists.'); return; }
+  state.tree.splice(state.tree.length-1,0,{name:v,kids:[]}); save(); renderCatGrid(); document.getElementById('newParInput').value='';
+}
+// Deleting only removes it from the picker; purchases keep their category and show under Misc.
+function deleteKid(pi,ki){ state.tree[pi].kids.splice(ki,1); save(); renderCatGrid(); }
+function deleteParent(pi){ const p=state.tree[pi]; if(p.name===MISC) return; state.tree.find(x=>x.name===MISC).kids.push(...p.kids); state.tree.splice(pi,1); save(); renderCatGrid(); }
 
+// ---------- History (splits grouped) ----------
+function itemLine(s,cls){
+  return `<div class="${cls}" onclick="openEditModal(${s.id})"><div style="display:flex;align-items:center;gap:12px;min-width:0"><div class="hi-icon">${ico(s.cat)}</div><div style="min-width:0"><div class="hi-name">${esc(lbl(s.cat))}</div><div class="hi-meta">${esc(lbl(parentOf(s.cat)))}</div></div></div><div style="display:flex;align-items:center;"><div class="hi-price">₹${s.price.toFixed(2)}</div><button class="del-btn" onclick="event.stopPropagation();deleteSnack(${s.id})">🗑️</button></div></div>`;
+}
 function renderHistory() {
-  if(!state.snacks.length){document.getElementById('historyList').innerHTML=`<div class="empty-state"><div class="big">📋</div><p>Nothing yet.</p></div>`;return;}
-  document.getElementById('historyList').innerHTML=state.snacks.map(s=>{
-    const d=new Date(s.time); const icon=s.cat.split(' ')[0]; const lbl=s.cat.split(' ').slice(1).join(' ');
-    const ts=fmtDate(d)+' · '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-    return `<div class="history-item" style="cursor:pointer" onclick="openEditModal(${s.id})"><div style="display:flex;align-items:center;gap:12px;"><div class="hi-icon">${icon}</div><div><div class="hi-name">${lbl}</div><div class="hi-meta">Q${s.quarter+1} · ${ts}</div></div></div><div style="display:flex;align-items:center;"><div class="hi-price">₹${s.price.toFixed(2)}</div><button class="del-btn" onclick="event.stopPropagation();deleteSnack(${s.id})">🗑️</button></div></div>`;
-  }).join('');
+  const el=document.getElementById('historyList');
+  if(!state.snacks.length){ el.innerHTML=`<div class="empty-state"><div class="big">📋</div><p>Nothing yet.</p></div>`; return; }
+  const seen=new Set(); let html='';
+  state.snacks.forEach(s=>{
+    const d=new Date(s.time); const ts=fmtDate(d)+' · '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    if(!s.gid){
+      html+=`<div class="history-item" style="cursor:pointer" onclick="openEditModal(${s.id})"><div style="display:flex;align-items:center;gap:12px;min-width:0"><div class="hi-icon">${ico(s.cat)}</div><div style="min-width:0"><div class="hi-name">${esc(lbl(s.cat))}</div><div class="hi-meta">${esc(lbl(parentOf(s.cat)))} · Q${s.quarter+1} · ${ts}</div></div></div><div style="display:flex;align-items:center;"><div class="hi-price">₹${s.price.toFixed(2)}</div><button class="del-btn" onclick="event.stopPropagation();deleteSnack(${s.id})">🗑️</button></div></div>`;
+      return;
+    }
+    if(seen.has(s.gid)) return; seen.add(s.gid);
+    const items=state.snacks.filter(x=>x.gid===s.gid); const gx=s.gx||0;
+    const tot=items.reduce((a,x)=>a+x.price,0)+gx;
+    html+=`<div class="grp-card"><div class="grp-head"><div><div class="hi-name">🧾 Split purchase</div><div class="hi-meta">Q${s.quarter+1} · ${ts}</div></div><div class="hi-price" style="color:var(--text)">₹${tot.toFixed(2)}</div></div>`
+      +items.map(x=>itemLine(x,'grp-item')).join('')
+      +(s.gxi&&s.gxi.length?s.gxi:(gx>0?[{n:'Not a snack',a:gx}]:[])).map(x=>`<div class="grp-item ns"><div style="display:flex;align-items:center;gap:12px;min-width:0"><div class="hi-icon">🚫</div><div style="min-width:0"><div class="hi-name">${esc(x.n)}</div><div class="hi-meta">Not a snack</div></div></div><div class="hi-price" style="color:var(--muted);padding-right:31px">₹${x.a.toFixed(2)}</div></div>`).join('')
+      +`</div>`;
+  });
+  el.innerHTML=html;
 }
 
-let statsScope='cycle';
+// ---------- Stats (categories by parent, tap to expand) ----------
+let statsScope='cycle'; const statsOpen=new Set();
 function setScope(s){ statsScope=s; renderStats(); }
+function toggleStatParent(name){ statsOpen.has(name)?statsOpen.delete(name):statsOpen.add(name); renderStats(); }
 function renderPastCycles() {
   if(!state.history.length) return '';
   return `<div class="section-title">Past Cycles</div>`+[...state.history].reverse().map(c=>{
     const st=new Date(c.startDate); const en=new Date(st); en.setDate(en.getDate()+27);
     const spent=c.snacks.reduce((a,x)=>a+x.price,0); const left=c.budget+(c.carryIn||0)-spent;
-    return `<div class="cyc-card"><div class="cyc-top"><span>${fmtDate(st)} – ${fmtDate(en)}</span><span style="color:${left<0?'#ff6b6b':'#4ade80'}">₹${left.toFixed(0)} left</span></div>
+    const out=Math.min(0,c.quarters[3].b);
+    return `<div class="cyc-card"><div class="cyc-top"><span>${fmtDate(st)} – ${fmtDate(en)}</span></div>
+      <div class="cyc-sub" style="display:flex;justify-content:space-between;margin-top:6px"><span>Net balance this cycle</span><b style="color:${left<0?'#ff6b6b':'#4ade80'}">₹${left.toFixed(0)}</b></div>
+      <div class="cyc-sub" style="display:flex;justify-content:space-between"><span>Carried to next cycle</span><b style="color:${out<0?'#ff6b6b':'var(--text)'}">₹${out.toFixed(0)}</b></div>
       <div class="cyc-sub">Budget ₹${c.budget.toFixed(0)}${c.carryIn?` · Carried ₹${c.carryIn.toFixed(0)}`:''} · Spent ₹${spent.toFixed(0)} · ${c.snacks.length} purchases</div>
       <div class="cyc-sub">${c.quarters.map((q,i)=>`Q${i+1} ₹${q.s.toFixed(0)}`).join(' · ')}</div></div>`;
   }).join('');
@@ -475,26 +717,32 @@ function renderStats() {
   const total=snacks.reduce((a,s)=>a+s.price,0); const avg=total/snacks.length;
   const priceMap={}; snacks.forEach(s=>{const k=s.price.toFixed(2);priceMap[k]=(priceMap[k]||0)+1;});
   const commonP=Object.entries(priceMap).sort((a,b)=>b[1]-a[1])[0];
-  const catMap={}; snacks.forEach(s=>{catMap[s.cat]=(catMap[s.cat]||0)+1;});
-  const sortedCats=Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+  const pMap={}; snacks.forEach(s=>{ const p=parentOf(s.cat); if(!pMap[p]) pMap[p]={n:0,amt:0,kids:{}}; pMap[p].n++; pMap[p].amt+=s.price; pMap[p].kids[s.cat]=(pMap[p].kids[s.cat]||0)+1; });
+  const sortedP=Object.entries(pMap).sort((a,b)=>b[1].n-a[1].n);
   const tb={Morning:0,Afternoon:0,Evening:0,Night:0};
   snacks.forEach(s=>{if(s.hour>=5&&s.hour<12)tb.Morning++;else if(s.hour>=12&&s.hour<17)tb.Afternoon++;else if(s.hour>=17&&s.hour<21)tb.Evening++;else tb.Night++;});
   const peakTime=Object.entries(tb).sort((a,b)=>b[1]-a[1])[0][0];
   const qSpend=[0,0,0,0]; snacks.forEach(s=>{qSpend[s.quarter]+=s.price;});
-  const maxCat=sortedCats[0][1];
+  const maxP=sortedP[0][1].n;
+  const catBars=sortedP.map(([p,v])=>{
+    const open=statsOpen.has(p);
+    let h=`<div class="bar-row click" onclick="toggleStatParent('${esc(p).replace(/'/g,"\\'")}')"><div class="bar-label">${esc(p)}</div><div class="bar-track"><div class="bar-fill" style="width:${v.n/maxP*100}%;background:#f7c948"></div></div><div class="bar-val">${v.n}x</div></div>`;
+    if(open) h+=Object.entries(v.kids).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`<div class="bar-row kid"><div class="bar-label">${esc(k)}</div><div class="bar-track"><div class="bar-fill" style="width:${n/v.n*100}%;background:#f7c94888"></div></div><div class="bar-val">${n}x</div></div>`).join('');
+    return h;
+  }).join('');
   document.getElementById('statsContent').innerHTML=toggle+`
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-label">Total Spent</div><div class="stat-value">₹${total.toFixed(0)}</div><div class="stat-sub">${snacks.length} purchases</div></div>
-      <div class="stat-card"><div class="stat-label">Avg per Purchase</div><div class="stat-value">₹${avg.toFixed(0)}</div></div>
+      <div class="stat-card"><div class="stat-label">Total Spent</div><div class="stat-value">₹${total.toFixed(0)}</div><div class="stat-sub">${snacks.length} items</div></div>
+      <div class="stat-card"><div class="stat-label">Avg per Item</div><div class="stat-value">₹${avg.toFixed(0)}</div></div>
       <div class="stat-card"><div class="stat-label">Common Price</div><div class="stat-value">₹${commonP[0]}</div><div class="stat-sub">${commonP[1]}× bought</div></div>
-      <div class="stat-card"><div class="stat-label">Peak Time</div><div class="stat-value" style="font-size:15px">${peakTime}</div><div class="stat-sub">${tb[peakTime]} purchases</div></div>
+      <div class="stat-card"><div class="stat-label">Peak Time</div><div class="stat-value" style="font-size:15px">${peakTime}</div><div class="stat-sub">${tb[peakTime]} items</div></div>
       ${all?`<div class="stat-card"><div class="stat-label">Cycles</div><div class="stat-value">${state.history.length+(state.budget>0?1:0)}</div><div class="stat-sub">incl. current</div></div>`:`<div class="stat-card"><div class="stat-label">Budget Left</div><div class="stat-value" style="color:${state.budget+(state.carryIn||0)-total<0?'#ff6b6b':'#4ade80'}">₹${(state.budget+(state.carryIn||0)-total).toFixed(0)}</div><div class="stat-sub">of ₹${state.budget}${state.carryIn?` (₹${state.carryIn.toFixed(0)} carried)`:''}</div></div>`}
-      <div class="stat-card"><div class="stat-label">Top Category</div><div class="stat-value" style="font-size:14px">${sortedCats[0][0].split(' ')[0]}</div><div class="stat-sub">${sortedCats[0][0].split(' ').slice(1).join(' ')}</div></div>
+      <div class="stat-card"><div class="stat-label">Top Category</div><div class="stat-value" style="font-size:14px">${ico(sortedP[0][0])}</div><div class="stat-sub">${esc(lbl(sortedP[0][0]))}</div></div>
     </div>
     <div class="section-title">Time of Day</div>
     <div class="stat-card" style="margin-bottom:12px;"><div class="time-grid">${Object.entries(tb).map(([k,v])=>`<div class="time-cell"><div class="time-cell-label">${k}</div><div class="time-cell-val" style="color:${v===Math.max(...Object.values(tb))?'#f7c948':'var(--text)'}">${v}</div></div>`).join('')}</div></div>
-    <div class="section-title">Categories</div>
-    <div class="stat-card" style="margin-bottom:12px;">${sortedCats.map(([k,v])=>`<div class="bar-row"><div class="bar-label">${k.split(' ')[0]} ${k.split(' ').slice(1).join(' ').substring(0,8)}</div><div class="bar-track"><div class="bar-fill" style="width:${v/maxCat*100}%;background:#f7c948"></div></div><div class="bar-val">${v}x</div></div>`).join('')}</div>
+    <div class="section-title">Categories · tap to expand</div>
+    <div class="stat-card" style="margin-bottom:12px;">${catBars}</div>
     ${all?'':`<div class="section-title">Quarter Spending</div>
     <div class="stat-card">${qSpend.map((v,i)=>{const pct=Math.max(0,(1-v/state.qBudget)*100);const c=getColor(pct);return `<div class="bar-row"><div class="bar-label">Q${i+1}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,v/state.qBudget*100)}%;background:${c}"></div></div><div class="bar-val">₹${v.toFixed(0)}</div></div>`;}).join('')}</div>`}`+(all?renderPastCycles():'');
 }
@@ -556,10 +804,9 @@ function buildImport(text) {
 function applyImport() {
   if(!pendingImport) return;
   const {cycles,active}=pendingImport;
-  const cats=new Set(state.cats); cycles.forEach(c=>c.snacks.forEach(s=>cats.add(s.cat)));
-  const past=active?cycles.slice(0,-1):cycles; const cur=active||cycles[cycles.length-1];
-  state={budget:cur.budget,qBudget:cur.qBudget,quarters:cur.quarters,snacks:cur.snacks,startDate:cur.startDate,cats:[...cats],history:active?past:cycles.slice(0,-1)};
-  save(); pendingImport=null;
+  const tree=state.tree; const cur=active||cycles[cycles.length-1];
+  state={budget:cur.budget,qBudget:cur.qBudget,quarters:cur.quarters,snacks:cur.snacks,startDate:cur.startDate,cats:[],history:cycles.slice(0,-1),tree};
+  ensureTree(); save(); pendingImport=null;
   document.getElementById('setupScreen').style.display='none'; document.getElementById('mainApp').style.display='block'; showTab('home');
 }
 </script>
