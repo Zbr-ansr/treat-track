@@ -1,13 +1,12 @@
 {
-  "id": "./?app=treattrack-beta",
-  "name": "Treat Track Beta",
-  "short_name": "TT Beta",
-  "description": "BETA test build of Treat Track",
+  "name": "Treat Track",
+  "short_name": "Treat Track",
+  "description": "Track your snack expenses across 28-day cycles",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0A0A0A",
-  "theme_color": "#0A0A0A",
+  "background_color": "#0f0f13",
+  "theme_color": "#0f0f13",
   "orientation": "portrait",
   "icons": [
     {
