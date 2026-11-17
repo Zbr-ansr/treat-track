@@ -262,7 +262,7 @@
           <div class="dg-btn danger" style="grid-column:1 / -1" onclick="twoTap(this,'reset','erase ALL data',resetApp)">Reset</div>
         </div>
         <input type="file" id="restoreFile" accept=".json,application/json" style="display:none" onchange="restoreBackup(event)">
-        <div style="font-size:10px;color:var(--muted);margin-top:18px;letter-spacing:1px">v13 · price edit · quarter drill-down</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:18px;letter-spacing:1px">v14 · single quarter analysis</div>
       </div>
       <div id="subStats" class="subpage"><button class="back-btn" onclick="showSubpage(null)">&lt; Settings</button><div class="page-title">Stats</div><div id="statsContent"></div></div>
       <div id="subHistory" class="subpage"><button class="back-btn" onclick="showSubpage(null)">&lt; Settings</button><div id="historyList"></div></div>
@@ -764,17 +764,19 @@ function renderHistory() {
   el.innerHTML=html||`<div class="empty-state">Nothing logged yet</div>`;
 }
 
-// ---------- Stats (quarters, time of day and categories all open on tap) ----------
+// ---------- Stats (one analysis box: pick any quarters; default all 4) ----------
 let statsScope='cycle';
-function setScope(s){ statsScope=s; statsQ=null; todOpen.clear(); renderStats(); }
-let statsQ=null;                 // quarter (0-3) or 'all' (all four combined) opened in the 'Spend by quarter' chart
-function toggleStatQ(i){ statsQ=statsQ===i?null:i; renderStats(); }
+// Quarter selection is shared by Cycle and All time. Empty set = all 4 quarters (the default view).
+const qSel=new Set();
+function setScope(s){ statsScope=s; renderStats(); }
+function toggleStatQ(i){ qSel.has(i)?qSel.delete(i):qSel.add(i); if(qSel.size===4) qSel.clear(); renderStats(); }
+function clearStatQ(){ qSel.clear(); renderStats(); }
 const todOpen=new Set();         // time-of-day rows opened to list their purchases
 function toggleTod(k){ todOpen.has(k)?todOpen.delete(k):todOpen.add(k); renderStats(); }
 const TOD=['Morning','Afternoon','Evening','Night'];
 function todOf(h){ return h>=5&&h<12?'Morning':h>=12&&h<17?'Afternoon':h>=17&&h<21?'Evening':'Night'; }
 const TOD_MAX=50;                // longest list shown under one time-of-day row
-const statsOpen2=new Set();
+const statsOpen2=new Set();      // category parents opened to show their children
 function toggleStatParent(name){ statsOpen2.has(name)?statsOpen2.delete(name):statsOpen2.add(name); renderStats(); }
 function renderStats() {
   const all=statsScope==='all';
@@ -782,11 +784,11 @@ function renderStats() {
   const toggle=`<div class="scope-row"><button class="scope-btn ${all?'':'on'}" onclick="setScope('cycle')">Cycle</button><button class="scope-btn ${all?'on':''}" onclick="setScope('all')">All time</button></div>`;
   const el=document.getElementById('statsContent');
   if(!snacks.length){ el.innerHTML=toggle+`<div class="empty-state">Log some snacks first</div>`; return; }
+  // summary cells: whole period (cycle or all time), independent of the quarter selection
   const total=snacks.reduce((a,s)=>a+s.price,0); const avg=total/snacks.length;
   const priceMap={}; snacks.forEach(s=>{const k=s.price.toFixed(0);priceMap[k]=(priceMap[k]||0)+1;});
   const commonP=Object.entries(priceMap).sort((a,b)=>b[1]-a[1])[0];
-  const tb={Morning:0,Afternoon:0,Evening:0,Night:0};
-  snacks.forEach(s=>{ tb[todOf(s.hour)]++; });
+  const tb={Morning:0,Afternoon:0,Evening:0,Night:0}; snacks.forEach(s=>{ tb[todOf(s.hour)]++; });
   const peak=Object.entries(tb).sort((a,b)=>b[1]-a[1])[0];
   const left=state.budget+(state.carryIn||0)-total;
   const cell=(k,v,sub='',red=false)=>`<div class="dg-cell"><div class="k">${k}</div><div class="v" style="${red?'color:#D7362B':''}">${v}</div>${sub?`<div class="s">${sub}</div>`:''}</div>`;
@@ -794,62 +796,54 @@ function renderStats() {
     all?cell('Cycles',state.history.length+(state.budget>0?1:0),'incl. current'):cell('Left',rs(left),state.carryIn?`carried ${rs(state.carryIn)}`:`of ₹${state.budget}`,left<0),
     cell('Avg item','₹'+avg.toFixed(0)), cell('Common','₹'+commonP[0],commonP[1]+'× bought'),
     cell('Peak',peak[0].slice(0,4).toUpperCase(),peak[1]+' items'), cell('Top',esc(lbl(parentOf(Object.entries(snacks.reduce((m,s)=>(m[s.cat]=(m[s.cat]||0)+1,m),{})).sort((a,b)=>b[1]-a[1])[0][0]))).toUpperCase(),'by items')].join('');
-  // quarter chart: height = spend share, stripe thickness = relative size
+  // quarter chart: height = spend share, stripe thickness = relative size; tap to add/remove a quarter
   const qSpend=[0,0,0,0]; snacks.forEach(s=>{qSpend[s.quarter]+=s.price;});
-  const tmax=Math.max(...Object.values(tb));
   const qMax=Math.max(...qSpend,1); const cq=all?-1:getCurrentQ();
   const over=i=>!all&&state.quarters[i]&&state.quarters[i].b<0;
+  const picked=i=>qSel.size===0||qSel.has(i);
   const bars=qSpend.map((v,i)=>{
-    const w=`<div class="${statsQ===i||statsQ==='all'?'on':''}" onclick="toggleStatQ(${i})">`;
-    if(!v) return w+`<i style="height:6%;border:1px dashed var(--muted)"></i></div>`;
-    const t=(1+Math.round(v/qMax*4)); const col=over(i)?'#D7362B':'#EDE8DC';
+    const w=`<div class="${picked(i)?'on':''}" onclick="toggleStatQ(${i})">`;
+    if(!v) return w+`<i style="height:6%;border:1px dashed ${qSel.has(i)?'#D7362B':'var(--muted)'}"></i></div>`;
+    const t=(1+Math.round(v/qMax*4)); const col=(qSel.size?qSel.has(i):over(i))?'#D7362B':'#EDE8DC';
     return w+`<i style="height:${Math.max(6,v/qMax*100)}%;background:repeating-linear-gradient(0deg,${col} 0 ${t}px,transparent ${t}px ${t+3}px)"></i></div>`;
   }).join('');
-  const qlab=qSpend.map((v,i)=>`<span class="${statsQ===i||statsQ==='all'?'on':''}" onclick="toggleStatQ(${i})" style="${over(i)?'color:#D7362B':(i===cq||statsQ===i)?'color:var(--text)':''}">${statsQ===i?'−':'+'} Q${i+1} ${v?v.toFixed(0):'—'}</span>`).join('');
-  // opened quarter: when (time of day) and where (category) the money went in that quarter
-  let qPanel='';
-  if(statsQ!==null){
-    const qAll=statsQ==='all';
-    const qs=qAll?snacks:snacks.filter(s=>s.quarter===statsQ);
-    const qTot=qs.reduce((a,s)=>a+s.price,0);
-    const title=qAll?'All 4 quarters · '+(all?'every cycle':fmtDate(getQStart(0))+' – '+fmtDate(getQEnd(3))):`Q${statsQ+1} · `+(all?'week '+(statsQ+1)+' of every cycle':fmtDate(getQStart(statsQ))+' – '+fmtDate(getQEnd(statsQ)));
-    if(!qs.length) qPanel=`<div class="q-panel"><div class="dg-head">${title}</div><div class="cyc-sub">No purchases</div></div>`;
-    else {
-      const tm={}; TOD.forEach(k=>tm[k]={n:0,amt:0}); qs.forEach(s=>{ const x=tm[todOf(s.hour)]; x.n++; x.amt+=s.price; });
-      const cm={}; qs.forEach(s=>{ const p=parentOf(s.cat); const x=cm[p]||(cm[p]={n:0,amt:0}); x.n++; x.amt+=s.price; });
-      const tTop=Math.max(...TOD.map(k=>tm[k].amt));
-      const line=(name,x,hot)=>`<tr><td>${name}</td><td class="n">${x.n}</td><td class="a" style="${hot?'color:#D7362B':''}">${x.n?'₹'+x.amt.toFixed(0):'—'}</td></tr>`;
-      qPanel=`<div class="q-panel"><div class="dg-head">${title} · ₹${qTot.toFixed(0)}</div>
-        <div class="dg-head">By time of day</div><table class="dg-table">${TOD.map(k=>line(k,tm[k],tm[k].amt===tTop&&tTop>0)).join('')}</table>
-        <div class="dg-head">By category</div><table class="dg-table">${Object.entries(cm).sort((a,b)=>b[1].amt-a[1].amt).map(([p,x],i)=>line(esc(lbl(p)),x,i===0)).join('')}</table></div>`;
-    }
+  const qlab=qSpend.map((v,i)=>`<span class="${picked(i)?'on':''}" onclick="toggleStatQ(${i})" style="${(qSel.size?qSel.has(i):over(i))?'color:#D7362B':i===cq?'color:var(--text)':''}">${qSel.has(i)?'✓ ':''}Q${i+1} ${v?v.toFixed(0):'—'}</span>`).join('');
+  // the single analysis box: selected quarters (default all 4), split by time of day and by category
+  const qs=qSel.size?snacks.filter(s=>qSel.has(s.quarter)):snacks;
+  const qTot=qs.reduce((a,s)=>a+s.price,0);
+  const qList=[...qSel].sort();
+  const range=()=>{ if(all) return qSel.size?'week '+qList.map(i=>i+1).join(', ')+' of every cycle':'every cycle';
+    return qSel.size?qList.map(i=>fmtDate(getQStart(i))+' – '+fmtDate(getQEnd(i))).join(', '):fmtDate(getQStart(0))+' – '+fmtDate(getQEnd(3)); };
+  const title=(qSel.size?qList.map(i=>'Q'+(i+1)).join(' + '):'All 4 quarters')+' · '+range();
+  let body;
+  if(!qs.length) body=`<div class="cyc-sub" style="padding:6px 0 4px">No purchases</div>`;
+  else {
+    const tm={}; TOD.forEach(k=>tm[k]={n:0,amt:0}); qs.forEach(s=>{ const x=tm[todOf(s.hour)]; x.n++; x.amt+=s.price; });
+    const tTop=Math.max(...TOD.map(k=>tm[k].amt));
+    const todRows=TOD.map(k=>{
+      const x=tm[k]; const open=todOpen.has(k)&&x.n>0; const hot=x.amt===tTop&&tTop>0;
+      let r=`<tr ${x.n?`class="tap" onclick="toggleTod('${k}')"`:''}><td>${x.n?(open?'− ':'+ '):''}${k}</td><td class="n">${x.n}</td><td class="a" style="${hot?'color:#D7362B':''}">${x.n?'₹'+x.amt.toFixed(0):'—'}</td></tr>`;
+      if(open){
+        const items=qs.filter(s=>todOf(s.hour)===k).sort((a,b)=>new Date(b.time)-new Date(a.time));
+        r+=items.slice(0,TOD_MAX).map(s=>{ const d=new Date(s.time); return `<tr class="kid"><td colspan="2">${fmtDate(d)} ${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})} · ${esc(lbl(s.cat))}</td><td class="a">₹${s.price.toFixed(0)}</td></tr>`; }).join('');
+        if(items.length>TOD_MAX) r+=`<tr class="kid"><td colspan="3">+ ${items.length-TOD_MAX} older not shown</td></tr>`;
+      }
+      return r;
+    }).join('');
+    const pMap={}; qs.forEach(s=>{ const p=parentOf(s.cat); if(!pMap[p]) pMap[p]={n:0,amt:0,kids:{}}; pMap[p].n++; pMap[p].amt+=s.price; const k=pMap[p].kids[s.cat]||(pMap[p].kids[s.cat]={n:0,amt:0}); k.n++; k.amt+=s.price; });
+    const catRows=Object.entries(pMap).sort((a,b)=>b[1].amt-a[1].amt).map(([p,v],idx)=>{
+      const open=statsOpen2.has(p);
+      let r=`<tr class="par" onclick="toggleStatParent('${esc(p).replace(/'/g,"\\'")}')"><td>${open?'−':'+'} ${esc(lbl(p))}</td><td class="n">${v.n}</td><td class="a" style="${idx===0?'color:#D7362B':''}">₹${v.amt.toFixed(0)}</td></tr>`;
+      if(open) r+=Object.entries(v.kids).sort((a,b)=>b[1].amt-a[1].amt).map(([k,x])=>`<tr class="kid"><td>${esc(lbl(k))}</td><td class="n">${x.n}</td><td class="a">₹${x.amt.toFixed(0)}</td></tr>`).join('');
+      return r;
+    }).join('');
+    body=`<div class="dg-head">By time of day</div><table class="dg-table">${todRows}</table>
+        <div class="dg-head">By category</div><table class="dg-table">${catRows}</table>`;
   }
-  // time of day: each row opens to list its purchases (newest first)
-  const todRow=(k,v)=>{
-    const open=todOpen.has(k)&&v>0;
-    let r=`<tr ${v?`class="tap" onclick="toggleTod('${k}')"`:''}><td>${v?(open?'− ':'+ '):''}${k}</td><td class="n" style="${v===tmax&&v?'color:#D7362B':''}">${v}</td><td class="a"><span style="display:inline-block;height:6px;width:${tmax?v/tmax*70:0}px;background:${v===tmax&&v?'#D7362B':'var(--text)'}"></span></td></tr>`;
-    if(open){
-      const items=snacks.filter(s=>todOf(s.hour)===k).sort((a,b)=>new Date(b.time)-new Date(a.time));
-      r+=items.slice(0,TOD_MAX).map(s=>{ const d=new Date(s.time); return `<tr class="kid"><td colspan="2">${fmtDate(d)} ${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})} · ${esc(lbl(s.cat))}</td><td class="a">₹${s.price.toFixed(0)}</td></tr>`; }).join('');
-      if(items.length>TOD_MAX) r+=`<tr class="kid"><td colspan="3">+ ${items.length-TOD_MAX} older not shown</td></tr>`;
-    }
-    return r;
-  };
-  // categories table (parent → children)
-  const pMap={}; snacks.forEach(s=>{ const p=parentOf(s.cat); if(!pMap[p]) pMap[p]={n:0,amt:0,kids:{}}; pMap[p].n++; pMap[p].amt+=s.price; const k=pMap[p].kids[s.cat]||(pMap[p].kids[s.cat]={n:0,amt:0}); k.n++; k.amt+=s.price; });
-  const rows=Object.entries(pMap).sort((a,b)=>b[1].amt-a[1].amt).map(([p,v])=>{
-    const open=statsOpen2.has(p);
-    let r=`<tr class="par" onclick="toggleStatParent('${esc(p).replace(/'/g,"\\'")}')"><td>${open?'−':'+'} ${esc(lbl(p))}</td><td class="n">${v.n}</td><td class="a">₹${v.amt.toFixed(0)}</td></tr>`;
-    if(open) r+=Object.entries(v.kids).sort((a,b)=>b[1].amt-a[1].amt).map(([k,x])=>`<tr class="kid"><td>${esc(lbl(k))}</td><td class="n">${x.n}</td><td class="a">₹${x.amt.toFixed(0)}</td></tr>`).join('');
-    return r;
-  }).join('');
+  const panel=`<div class="q-panel"><div class="dg-head">${title} · ₹${qTot.toFixed(0)}</div>${body}</div>`;
   el.innerHTML=toggle+`<div class="dg-cells" style="margin-top:12px">${cells}</div>
-    <div class="dg-head q-headrow"><span>Spend by quarter${all?' · all cycles':''}</span><button class="q-all ${statsQ==='all'?'on':''}" onclick="toggleStatQ('all')">${statsQ==='all'?'−':'+'} All 4</button></div>
-    <div class="qchart ${statsQ!==null?'sel':''}">${bars}</div><div class="qlab ${statsQ!==null?'sel':''}">${qlab}</div>${qPanel}
-    <div class="dg-head">Time of day</div>
-    <table class="dg-table">${TOD.map(k=>todRow(k,tb[k])).join('')}</table>
-    <div class="dg-head">Categories</div>
-    <table class="dg-table">${rows}</table>`;
+    <div class="dg-head q-headrow"><span>Spend by quarter${all?' · all cycles':''}</span><button class="q-all ${qSel.size?'':'on'}" onclick="clearStatQ()">All 4</button></div>
+    <div class="qchart ${qSel.size?'sel':''}">${bars}</div><div class="qlab ${qSel.size?'sel':''}">${qlab}</div>${panel}`;
 }
 
 // ---- CSV import ----

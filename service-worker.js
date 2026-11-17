@@ -1,5 +1,5 @@
 // Touches ONLY this app's caches (treattrack-v*), never the beta's
-const CACHE = 'treattrack-v13';
+const CACHE = 'treattrack-v14';
 const FILES = ['./', './index.html', './manifest.json', './icon-192-v13.png', './icon-512-v13.png',
   './fonts/ibm-plex-mono-latin-400-normal.woff2', './fonts/ibm-plex-mono-latin-500-normal.woff2',
   './fonts/ibm-plex-mono-latin-ext-400-normal.woff2', './fonts/ibm-plex-mono-latin-ext-500-normal.woff2',
