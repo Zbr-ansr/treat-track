@@ -166,7 +166,8 @@
   .qchart { display:flex; align-items:flex-end; gap:10px; height:110px; border-bottom:1px solid var(--text); }
   .qchart > div { flex:1; height:100%; display:flex; align-items:flex-end; cursor:pointer; }
   .qchart > div > i { display:block; width:100%; }
-  .qchart.sel > div:not(.on), .qlab.sel > span:not(.on) { opacity:.28; }
+  /* unselected quarters stay visible in their own colour, just greyed down */
+  .qchart.sel > div:not(.on), .qlab.sel > span:not(.on) { opacity:.38; }
   .qlab span { cursor:pointer; }
   .q-headrow { display:flex; justify-content:space-between; align-items:center; }
   .q-all { background:none; border:1px solid var(--muted); color:var(--muted); font:inherit; letter-spacing:2px; text-transform:uppercase; padding:5px 9px; cursor:pointer; }
@@ -804,10 +805,10 @@ function renderStats() {
   const bars=qSpend.map((v,i)=>{
     const w=`<div class="${picked(i)?'on':''}" onclick="toggleStatQ(${i})">`;
     if(!v) return w+`<i style="height:6%;border:1px dashed ${qSel.has(i)?'#D7362B':'var(--muted)'}"></i></div>`;
-    const t=(1+Math.round(v/qMax*4)); const col=(!qSel.size&&over(i))?'#D7362B':'#EDE8DC';
+    const t=(1+Math.round(v/qMax*4)); const col=over(i)?'#D7362B':'#EDE8DC';
     return w+`<i style="height:${Math.max(6,v/qMax*100)}%;background:repeating-linear-gradient(0deg,${col} 0 ${t}px,transparent ${t}px ${t+3}px)"></i></div>`;
   }).join('');
-  const qlab=qSpend.map((v,i)=>`<span class="${picked(i)?'on':''}" onclick="toggleStatQ(${i})" style="${qSel.size?(qSel.has(i)?'color:var(--text);font-weight:500':''):over(i)?'color:#D7362B':i===cq?'color:var(--text)':''}">${qSel.has(i)?'✓ ':''}Q${i+1} ${v?v.toFixed(0):'—'}</span>`).join('');
+  const qlab=qSpend.map((v,i)=>`<span class="${picked(i)?'on':''}" onclick="toggleStatQ(${i})" style="${over(i)?'color:#D7362B':(qSel.has(i)||(!qSel.size&&i===cq))?'color:var(--text)':''}${qSel.has(i)?';font-weight:500':''}">${qSel.has(i)?'✓ ':''}Q${i+1} ${v?v.toFixed(0):'—'}</span>`).join('');
   // the single analysis box: selected quarters (default all 4), split by time of day and by category
   const qs=qSel.size?snacks.filter(s=>qSel.has(s.quarter)):snacks;
   const qTot=qs.reduce((a,s)=>a+s.price,0);
